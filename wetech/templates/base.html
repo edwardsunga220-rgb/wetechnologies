@@ -7,7 +7,7 @@
     <title>{% block title %}{{ company_name|default:"WeTech" }} - Systems & Mobile Solutions{% endblock %}</title>
     
     <!-- FAVICON -->
-    <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
+    <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
     
     <!-- FONTS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1335,6 +1335,53 @@
         window.toggleCart = toggleCart;
         window.updateNavbarCounts = updateNavbarCounts;
     </script>
+    <style>
+    body {
+        -webkit-user-select: none; /* Safari */
+        -moz-user-select: none;    /* Firefox */
+        -ms-user-select: none;     /* IE10+/Edge */
+        user-select: none;         /* Standard */
+    }
+</style>
+
+<script>
+    // 1. Disable Right-Click
+    document.addEventListener('contextmenu', event => event.preventDefault());
+
+    // 2. Disable Keyboard Shortcuts (F12, Ctrl+U, Ctrl+Shift+I, etc.)
+    document.onkeydown = function(e) {
+        if (e.keyCode == 123) return false; // F12
+        if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false;
+        if (e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false;
+        if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false;
+        if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false;
+    };
+
+    // 3. Prevent Dragging Images
+    document.addEventListener('dragstart', function(e) {
+        if (e.target.nodeName === 'IMG') e.preventDefault();
+    });
+
+    // 4. Advanced: The Debugger Loop
+    // If they open DevTools, this will pause the browser execution
+    (function() {
+        const blocker = function() {
+            setInterval(function() {
+                (function() {
+                    return false;
+                }
+                ['constructor']('debugger')
+                ['call']());
+            }, 50);
+        };
+        try { blocker(); } catch (err) {}
+    })();
+
+    // 5. Constant Console Clearing
+    setInterval(function() {
+        console.clear();
+    }, 100);
+</script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
