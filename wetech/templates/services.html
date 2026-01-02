@@ -1,0 +1,1450 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Our Services - WeTech{% endblock %}
+
+{% block content %}
+<!-- 1. Hero -->
+<section class="page-hero">
+    <div class="hero-text-center">
+        <span class="hero-badge"><i class="bi bi-cpu-fill"></i> Expertise</span>
+        <h1>Technical <span class="text-gradient">Capabilities</span></h1>
+        <p>End-to-end engineering. From the database schema to the pixel on the screen.</p>
+    </div>
+</section>
+
+<!-- 2. Enhanced Services Tabs with Search -->
+<section class="services-advanced section-spacing" id="services-section">
+    <div class="tabs-container">
+        <!-- Search Bar -->
+        <div class="services-search-wrapper">
+            <div class="search-box glass-card">
+                <i class="bi bi-search"></i>
+                <input type="text" id="service-search" placeholder="Search services..." onkeyup="filterServices()">
+            </div>
+        </div>
+        
+        <!-- TAB BUTTONS with Counters -->
+        <div class="tab-buttons-wrapper">
+            <div class="tab-buttons" id="tab-buttons">
+            <!-- 1. STATIC "ALL" BUTTON (Active by default) -->
+            <button class="tab-btn active" onclick="switchTab(this, 'all-services')">
+                    <i class="bi bi-grid-fill"></i> 
+                    <span>All Services</span>
+                    <span class="tab-badge" id="all-count">0</span>
+            </button>
+
+            <!-- 2. DYNAMIC CATEGORY BUTTONS -->
+                {% for cat in categories %}
+            <button class="tab-btn" onclick="switchTab(this, '{{ cat.slug }}')">
+                    <i class="{{ cat.icon }}"></i> 
+                    <span>{{ cat.title }}</span>
+                    <span class="tab-badge" data-category="{{ cat.slug }}">{{ cat.services.count }}</span>
+                </button>
+                {% endfor %}
+            </div>
+            <div class="tab-indicator"></div>
+        </div>
+
+        <div class="tab-content">
+            <!-- 1. STATIC "ALL" PANE (Active by default) -->
+            <div class="tab-pane active" id="all-services">
+                <div class="service-detail-grid" id="all-services-grid">
+                    <!-- Loop through ALL Categories and ALL Services -->
+                    {% for cat in categories %}
+                        {% for service in cat.services.all %}
+                        <div class="service-card-modern glass-card enhanced-service-card" 
+                             data-service-title="{{ service.title|lower }}" 
+                             data-service-desc="{{ service.description|lower }}"
+                             data-category="{{ cat.slug }}">
+                            <div class="service-visual-area">
+                                <img src="{{ service.image.url }}" alt="{{ service.title }}">
+                                <div class="visual-overlay"></div>
+                                <div class="service-quick-view" onclick="openServiceModal('{{ service.title }}', '{{ service.description }}', '{{ service.image.url }}', '{{ cat.title }}')">
+                                    <i class="bi bi-eye"></i> Quick View
+                                </div>
+                            </div>
+                            <div class="service-content-area">
+                                <div class="service-category-badge">{{ cat.title }}</div>
+                                <h3>{{ service.title }}</h3>
+                                <p>{{ service.description }}</p>
+                                <div class="tech-tags">
+                                    {% for tag in service.tags.all %}
+                                    <span class="tech-tag-animated"><i class="{{ tag.icon }}"></i> {{ tag.name }}</span>
+                                    {% endfor %}
+                                </div>
+                                <button class="service-learn-more" onclick="openServiceModal('{{ service.title }}', '{{ service.description }}', '{{ service.image.url }}', '{{ cat.title }}')">
+                                    Learn More <i class="bi bi-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% empty %}
+                        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
+                            <p>No services found in the system.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 2. DYNAMIC CATEGORY PANES -->
+            {% for cat in categories %}
+            <div class="tab-pane" id="{{ cat.slug }}">
+                <div class="service-detail-grid">
+                    {% for service in cat.services.all %}
+                    <div class="service-card-modern glass-card enhanced-service-card"
+                         data-service-title="{{ service.title|lower }}" 
+                         data-service-desc="{{ service.description|lower }}">
+                        <div class="service-visual-area">
+                            <img src="{{ service.image.url }}" alt="{{ service.title }}">
+                            <div class="visual-overlay"></div>
+                            <div class="service-quick-view" onclick="openServiceModal('{{ service.title }}', '{{ service.description }}', '{{ service.image.url }}', '{{ cat.title }}')">
+                                <i class="bi bi-eye"></i> Quick View
+                            </div>
+                        </div>
+                        <div class="service-content-area">
+                            <div class="service-category-badge">{{ cat.title }}</div>
+                            <h3>{{ service.title }}</h3>
+                            <p>{{ service.description }}</p>
+                            <div class="tech-tags">
+                                {% for tag in service.tags.all %}
+                                <span class="tech-tag-animated"><i class="{{ tag.icon }}"></i> {{ tag.name }}</span>
+                                {% endfor %}
+                            </div>
+                            <button class="service-learn-more" onclick="openServiceModal('{{ service.title }}', '{{ service.description }}', '{{ service.image.url }}', '{{ cat.title }}')">
+                                Learn More <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div style="grid-column: 1/-1; text-align: center; color: rgba(255,255,255,0.5); padding: 40px;">
+                        <i class="bi bi-cone-striped" style="font-size: 30px; margin-bottom: 10px; display: block;"></i>
+                        <p>No services added to {{ cat.title }} yet.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Service Modal -->
+<div id="service-modal" class="service-modal">
+    <div class="modal-overlay" onclick="closeServiceModal()"></div>
+    <div class="modal-content glass-card">
+        <button class="modal-close" onclick="closeServiceModal()"><i class="bi bi-x-lg"></i></button>
+        <div class="modal-image">
+            <img id="modal-image" src="" alt="">
+        </div>
+        <div class="modal-body">
+            <span class="modal-category" id="modal-category"></span>
+            <h2 id="modal-title"></h2>
+            <p id="modal-description"></p>
+            <a href="{% url 'contact' %}" class="btn-primary">Get Started</a>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Enhanced Engagement Models -->
+<section class="engagement-section section-spacing" id="engagement-section">
+    <div class="section-header">
+        <h2 class="section-title">How to <span class="text-gradient">Engage Us</span></h2>
+        <p class="section-subtitle">Flexible working models suited for startups and enterprises.</p>
+        </div>
+    <div class="engagement-grid">
+            <!-- Model 1 -->
+        <div class="engage-card glass-card enhanced-engage-card" data-model="1">
+            <div class="model-badge">Best for MVPs</div>
+            <div class="model-icon"><i class="bi bi-box-seam-fill"></i></div>
+                <h3>Project Based</h3>
+            <p>Best for MVPs and defined scopes.</p>
+            <ul>
+                <li><i class="bi bi-check-circle-fill"></i> Fixed Budget</li>
+                <li><i class="bi bi-check-circle-fill"></i> Defined Timeline</li>
+                <li><i class="bi bi-check-circle-fill"></i> Full Delivery Ownership</li>
+                </ul>
+            <div class="model-features">
+                <div class="feature-item">
+                    <span class="feature-label">Timeline</span>
+                    <span class="feature-value">2-12 weeks</span>
+            </div>
+                <div class="feature-item">
+                    <span class="feature-label">Budget</span>
+                    <span class="feature-value">Fixed</span>
+                </div>
+            </div>
+        </div>
+        <!-- Model 2 - Highlighted -->
+        <div class="engage-card glass-card highlight-card enhanced-engage-card popular-badge" data-model="2">
+            <div class="popular-label"><i class="bi bi-star-fill"></i> Most Popular</div>
+            <div class="model-badge">Best for Scale-ups</div>
+            <div class="model-icon"><i class="bi bi-people-fill"></i></div>
+                <h3>Dedicated Team</h3>
+            <p>Best for Scale-ups & Long term.</p>
+            <ul>
+                <li><i class="bi bi-check-circle-fill"></i> Monthly Billing</li>
+                <li><i class="bi bi-check-circle-fill"></i> Full-time Developers</li>
+                <li><i class="bi bi-check-circle-fill"></i> Direct Management Access</li>
+                </ul>
+            <div class="model-features">
+                <div class="feature-item">
+                    <span class="feature-label">Timeline</span>
+                    <span class="feature-value">Ongoing</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-label">Billing</span>
+                    <span class="feature-value">Monthly</span>
+                </div>
+            </div>
+            </div>
+            <!-- Model 3 -->
+        <div class="engage-card glass-card enhanced-engage-card" data-model="3">
+            <div class="model-badge">Best for Enterprise</div>
+            <div class="model-icon"><i class="bi bi-tools"></i></div>
+                <h3>Staff Augmentation</h3>
+            <p>Best for Enterprise teams.</p>
+            <ul>
+                <li><i class="bi bi-check-circle-fill"></i> Fill Skill Gaps</li>
+                <li><i class="bi bi-check-circle-fill"></i> Integrate with your CTO</li>
+                <li><i class="bi bi-check-circle-fill"></i> Flexible Hours</li>
+                </ul>
+            <div class="model-features">
+                <div class="feature-item">
+                    <span class="feature-label">Timeline</span>
+                    <span class="feature-value">Flexible</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-label">Integration</span>
+                    <span class="feature-value">Seamless</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Comparison Table -->
+    <div class="engagement-comparison glass-card">
+        <h3 class="comparison-title">Quick Comparison</h3>
+        <div class="comparison-grid">
+            <div class="comparison-header">
+                <div class="comp-cell">Feature</div>
+                <div class="comp-cell">Project Based</div>
+                <div class="comp-cell highlight-comp">Dedicated Team</div>
+                <div class="comp-cell">Staff Augmentation</div>
+            </div>
+            <div class="comparison-row">
+                <div class="comp-cell">Billing</div>
+                <div class="comp-cell">Fixed Price</div>
+                <div class="comp-cell highlight-comp">Monthly</div>
+                <div class="comp-cell">Hourly/Weekly</div>
+            </div>
+            <div class="comparison-row">
+                <div class="comp-cell">Team Size</div>
+                <div class="comp-cell">As Needed</div>
+                <div class="comp-cell highlight-comp">Full Team</div>
+                <div class="comp-cell">Individual</div>
+            </div>
+            <div class="comparison-row">
+                <div class="comp-cell">Best For</div>
+                <div class="comp-cell">MVPs</div>
+                <div class="comp-cell highlight-comp">Scale-ups</div>
+                <div class="comp-cell">Enterprise</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 4. Enhanced Tech Stack Section -->
+<section class="tech-grid-section section-spacing" id="tech-section">
+    <div class="section-header">
+        <h2 class="section-title">Our <span class="text-gradient">Toolbelt</span></h2>
+        <p class="section-subtitle">Technologies we master and use daily.</p>
+    </div>
+    <div class="tech-icon-grid">
+        <div class="tech-icon-box enhanced-tech-box" data-tech="python">
+            <div class="tech-icon-wrapper">
+                <i class="bi bi-filetype-py"></i>
+                <div class="tech-tooltip">Python - 8+ years</div>
+            </div>
+            <span>Python</span>
+            <div class="tech-progress">
+                <div class="tech-progress-bar" data-level="98"></div>
+            </div>
+        </div>
+        <div class="tech-icon-box enhanced-tech-box" data-tech="react">
+            <div class="tech-icon-wrapper">
+                <i class="bi bi-filetype-jsx"></i>
+                <div class="tech-tooltip">React - 5+ years</div>
+            </div>
+            <span>React</span>
+            <div class="tech-progress">
+                <div class="tech-progress-bar" data-level="92"></div>
+            </div>
+        </div>
+        <div class="tech-icon-box enhanced-tech-box" data-tech="aws">
+            <div class="tech-icon-wrapper">
+                <i class="bi bi-cloud-fill"></i>
+                <div class="tech-tooltip">AWS - 6+ years</div>
+            </div>
+            <span>AWS</span>
+            <div class="tech-progress">
+                <div class="tech-progress-bar" data-level="95"></div>
+            </div>
+        </div>
+        <div class="tech-icon-box enhanced-tech-box" data-tech="docker">
+            <div class="tech-icon-wrapper">
+                <i class="bi bi-container"></i>
+                <div class="tech-tooltip">Docker - 7+ years</div>
+            </div>
+            <span>Docker</span>
+            <div class="tech-progress">
+                <div class="tech-progress-bar" data-level="94"></div>
+            </div>
+        </div>
+        <div class="tech-icon-box enhanced-tech-box" data-tech="postgres">
+            <div class="tech-icon-wrapper">
+                <i class="bi bi-database-fill"></i>
+                <div class="tech-tooltip">PostgreSQL - 8+ years</div>
+            </div>
+            <span>Postgres</span>
+            <div class="tech-progress">
+                <div class="tech-progress-bar" data-level="97"></div>
+            </div>
+        </div>
+        <div class="tech-icon-box enhanced-tech-box" data-tech="flutter">
+            <div class="tech-icon-wrapper">
+                <i class="bi bi-phone-fill"></i>
+                <div class="tech-tooltip">Flutter - 4+ years</div>
+            </div>
+            <span>Flutter</span>
+            <div class="tech-progress">
+                <div class="tech-progress-bar" data-level="90"></div>
+            </div>
+        </div>
+        <div class="tech-icon-box enhanced-tech-box" data-tech="ai">
+            <div class="tech-icon-wrapper">
+                <i class="bi bi-cpu-fill"></i>
+                <div class="tech-tooltip">AI/ML - 3+ years</div>
+            </div>
+            <span>AI/ML</span>
+            <div class="tech-progress">
+                <div class="tech-progress-bar" data-level="85"></div>
+            </div>
+        </div>
+        <div class="tech-icon-box enhanced-tech-box" data-tech="security">
+            <div class="tech-icon-wrapper">
+                <i class="bi bi-shield-lock-fill"></i>
+                <div class="tech-tooltip">Security - 7+ years</div>
+            </div>
+            <span>Security</span>
+            <div class="tech-progress">
+                <div class="tech-progress-bar" data-level="96"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 5. Service Process Flow -->
+<section class="process-flow-section section-spacing" id="process-section">
+    <div class="section-header">
+        <h2 class="section-title">Our Service <span class="text-gradient">Process</span></h2>
+        <p class="section-subtitle">How we deliver excellence from start to finish.</p>
+    </div>
+    <div class="process-flow">
+        <div class="process-step enhanced-process-step" data-step="1">
+            <div class="process-number">01</div>
+            <div class="process-content glass-card">
+                <i class="bi bi-chat-dots"></i>
+                <h4>Consultation</h4>
+                <p>We understand your needs and goals</p>
+            </div>
+        </div>
+        <div class="process-connector"></div>
+        <div class="process-step enhanced-process-step" data-step="2">
+            <div class="process-number">02</div>
+            <div class="process-content glass-card">
+                <i class="bi bi-clipboard-check"></i>
+                <h4>Planning</h4>
+                <p>Detailed architecture and roadmap</p>
+            </div>
+        </div>
+        <div class="process-connector"></div>
+        <div class="process-step enhanced-process-step" data-step="3">
+            <div class="process-number">03</div>
+            <div class="process-content glass-card">
+                <i class="bi bi-code-slash"></i>
+                <h4>Development</h4>
+                <p>Agile sprints with regular demos</p>
+            </div>
+        </div>
+        <div class="process-connector"></div>
+        <div class="process-step enhanced-process-step" data-step="4">
+            <div class="process-number">04</div>
+            <div class="process-content glass-card">
+                <i class="bi bi-rocket-takeoff"></i>
+                <h4>Launch</h4>
+                <p>Deployment and go-live support</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 6. CTA -->
+<section class="final-cta">
+    <div class="cta-content">
+        <h2>Ready to build?</h2>
+        <p>Stop wrestling with legacy code. Start building your future.</p><br>
+        <div class="cta-buttons">
+            <a href="{% url 'contact' %}" class="btn-primary">Schedule Consultation</a>
+        </div>
+    </div>
+    <div class="cta-bg-glow"></div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Tab Switching Logic with Animation
+    function switchTab(btn, tabId) {
+        // Update tab indicator position
+        const tabButtons = document.getElementById('tab-buttons');
+        const indicator = document.querySelector('.tab-indicator');
+        const btnRect = btn.getBoundingClientRect();
+        const containerRect = tabButtons.getBoundingClientRect();
+        
+        indicator.style.left = (btnRect.left - containerRect.left) + 'px';
+        indicator.style.width = btnRect.offsetWidth + 'px';
+        
+        // 1. Remove active class from all buttons
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        // 2. Add active class to clicked button
+        btn.classList.add('active');
+        
+        // 3. Hide all tab panes with fade out
+        document.querySelectorAll('.tab-pane').forEach(pane => {
+            pane.style.opacity = '0';
+            setTimeout(() => {
+                pane.classList.remove('active');
+            }, 150);
+        });
+        
+        // 4. Show the selected tab pane with fade in
+        setTimeout(() => {
+        const activePane = document.getElementById(tabId);
+        if (activePane) {
+            activePane.classList.add('active');
+                setTimeout(() => {
+                    activePane.style.opacity = '1';
+                }, 50);
+                
+                // Re-trigger animations for cards
+                const cards = activePane.querySelectorAll('.enhanced-service-card');
+                cards.forEach((card, index) => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(30px)';
+                    setTimeout(() => {
+                        card.style.transition = 'all 0.5s ease';
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, index * 100);
+                });
+            }
+        }, 150);
+    }
+
+    // Initialize tab indicator position
+    document.addEventListener('DOMContentLoaded', function() {
+        const activeBtn = document.querySelector('.tab-btn.active');
+        if (activeBtn) {
+            const tabButtons = document.getElementById('tab-buttons');
+            const indicator = document.querySelector('.tab-indicator');
+            const btnRect = activeBtn.getBoundingClientRect();
+            const containerRect = tabButtons.getBoundingClientRect();
+            
+            indicator.style.left = (btnRect.left - containerRect.left) + 'px';
+            indicator.style.width = activeBtn.offsetWidth + 'px';
+        }
+        
+        // Count all services
+        const allCards = document.querySelectorAll('#all-services-grid .enhanced-service-card');
+        const allCount = document.getElementById('all-count');
+        if (allCount) {
+            allCount.textContent = allCards.length;
+        }
+    });
+
+    // Service Search/Filter
+    function filterServices() {
+        const searchTerm = document.getElementById('service-search').value.toLowerCase();
+        const activePane = document.querySelector('.tab-pane.active');
+        const cards = activePane.querySelectorAll('.enhanced-service-card');
+        
+            cards.forEach(card => {
+            const title = card.getAttribute('data-service-title');
+            const desc = card.getAttribute('data-service-desc');
+            
+            if (title.includes(searchTerm) || desc.includes(searchTerm)) {
+                card.style.display = 'block';
+                card.style.opacity = '1';
+            } else {
+                card.style.display = 'none';
+                card.style.opacity = '0';
+            }
+        });
+    }
+
+    // Service Modal Functions
+    function openServiceModal(title, description, image, category) {
+        const modal = document.getElementById('service-modal');
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-description').textContent = description;
+        document.getElementById('modal-image').src = image;
+        document.getElementById('modal-category').textContent = category;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeServiceModal() {
+        const modal = document.getElementById('service-modal');
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+
+    // Close modal on ESC key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeServiceModal();
+        }
+    });
+
+    // Scroll animations
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate service cards on scroll
+        const serviceCards = document.querySelectorAll('.enhanced-service-card');
+        const cardObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0) rotateX(0)';
+                    }, index * 100);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        serviceCards.forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px) rotateX(5deg)';
+            cardObserver.observe(card);
+        });
+
+        // Animate engagement cards
+        const engageCards = document.querySelectorAll('.enhanced-engage-card');
+        const engageObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, index * 150);
+                }
+            });
+        }, { threshold: 0.2 });
+
+        engageCards.forEach(card => {
+            engageObserver.observe(card);
+        });
+
+        // Animate tech progress bars
+        const techBars = document.querySelectorAll('.tech-progress-bar');
+        const techObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const level = entry.target.getAttribute('data-level');
+                    entry.target.style.width = level + '%';
+                }
+            });
+        }, { threshold: 0.5 });
+
+        techBars.forEach(bar => techObserver.observe(bar));
+
+        // Animate process steps
+        const processSteps = document.querySelectorAll('.enhanced-process-step');
+        const processObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, index * 200);
+                }
+            });
+        }, { threshold: 0.3 });
+
+        processSteps.forEach(step => processObserver.observe(step));
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Enhanced Tab Navigation */
+    .tab-buttons-wrapper {
+        position: relative;
+        margin-bottom: 40px;
+    }
+    
+    .tab-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+        position: relative;
+        padding-bottom: 5px;
+    }
+    
+    .tab-btn {
+        position: relative;
+        padding: 12px 24px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 50px;
+        color: rgba(255, 255, 255, 0.7);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: 'Outfit', sans-serif;
+        font-size: 14px;
+    }
+    
+    .tab-btn:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(0, 240, 255, 0.3);
+        color: #fff;
+    }
+    
+    .tab-btn.active {
+        background: rgba(0, 240, 255, 0.1);
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+    
+    .tab-badge {
+        background: rgba(0, 240, 255, 0.2);
+        color: var(--primary);
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+    
+    .tab-btn.active .tab-badge {
+        background: var(--primary);
+        color: #000;
+    }
+    
+    .tab-indicator {
+        position: absolute;
+        bottom: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        border-radius: 2px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1;
+    }
+    
+    /* Search Box */
+    .services-search-wrapper {
+        margin-bottom: 40px;
+        display: flex;
+        justify-content: center;
+    }
+    
+    .search-box {
+        max-width: 500px;
+        width: 100%;
+        padding: 15px 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .search-box i {
+        color: var(--primary);
+        font-size: 20px;
+    }
+    
+    .search-box input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-size: 16px;
+        outline: none;
+    }
+    
+    .search-box input::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+    }
+    
+    /* Enhanced Service Cards */
+    .service-detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 30px;
+        margin-top: 40px;
+    }
+
+    .enhanced-service-card {
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        overflow: hidden;
+        text-align: center;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 20px;
+        perspective: 1000px;
+        transform-style: preserve-3d;
+    }
+    
+    .enhanced-service-card:hover {
+        transform: translateY(-10px) rotateX(2deg);
+        border-color: var(--primary);
+        box-shadow: 0 25px 60px rgba(0, 240, 255, 0.3);
+    }
+
+    .service-visual-area {
+        width: 100%;
+        height: 220px;
+        overflow: hidden;
+        position: relative;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .service-visual-area img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.6s ease;
+    }
+    
+    .enhanced-service-card:hover .service-visual-area img {
+        transform: scale(1.15) rotate(2deg);
+    }
+    
+    .visual-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 60%;
+        background: linear-gradient(to top, rgba(10, 10, 18, 0.95), transparent);
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    
+    .enhanced-service-card:hover .visual-overlay {
+        opacity: 0.7;
+    }
+    
+    .service-quick-view {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 240, 255, 0.9);
+        color: #000;
+        padding: 12px 24px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 14px;
+        opacity: 0;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        z-index: 2;
+    }
+    
+    .enhanced-service-card:hover .service-quick-view {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.05);
+    }
+    
+    .service-quick-view:hover {
+        background: var(--primary);
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+
+    .service-content-area {
+        padding: 30px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .service-category-badge {
+        display: inline-block;
+        padding: 5px 12px;
+        background: rgba(0, 240, 255, 0.1);
+        border: 1px solid rgba(0, 240, 255, 0.3);
+        border-radius: 20px;
+        font-size: 11px;
+        color: var(--primary);
+        margin-bottom: 15px;
+        width: fit-content;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .service-content-area h3 {
+        font-family: 'Syne', sans-serif;
+        font-size: 24px;
+        color: #fff;
+        margin-bottom: 15px;
+    }
+    
+    .service-content-area p {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.6);
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+
+    /* Enhanced Tags */
+    .tech-tags {
+        margin-top: auto;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .tech-tag-animated {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+        opacity: 0;
+        transform: translateY(10px);
+        animation: tagSlideIn 0.5s ease forwards;
+    }
+    
+    @keyframes tagSlideIn {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .tech-tag-animated i {
+        color: var(--primary);
+    }
+    
+    .tech-tag-animated:hover {
+        background: rgba(0, 240, 255, 0.15);
+        border-color: var(--primary);
+        transform: translateY(-2px);
+    }
+    
+    .service-learn-more {
+        margin-top: 15px;
+        padding: 10px 20px;
+        background: rgba(0, 240, 255, 0.1);
+        border: 1px solid var(--primary);
+        border-radius: 50px;
+        color: var(--primary);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        width: fit-content;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .service-learn-more:hover {
+        background: var(--primary);
+        color: #000;
+        transform: translateX(5px);
+    }
+
+    /* CSS FOR TABS */
+    .tab-pane {
+        display: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .tab-pane.active {
+        display: block;
+        opacity: 1;
+    }
+
+    /* Service Modal */
+    .service-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .service-modal.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .modal-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.8);
+        -webkit-backdrop-filter: blur(5px);
+        backdrop-filter: blur(5px);
+    }
+    
+    .modal-content {
+        position: relative;
+        max-width: 800px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        z-index: 1;
+        animation: modalSlideIn 0.3s ease;
+    }
+    
+    @keyframes modalSlideIn {
+        from {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    .modal-close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        z-index: 2;
+    }
+    
+    .modal-close:hover {
+        background: var(--primary);
+        color: #000;
+        transform: rotate(90deg);
+    }
+    
+    .modal-image {
+        width: 100%;
+        height: 300px;
+        overflow: hidden;
+    }
+    
+    .modal-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .modal-body {
+        padding: 40px;
+    }
+    
+    .modal-category {
+        display: inline-block;
+        padding: 6px 16px;
+        background: rgba(0, 240, 255, 0.1);
+        border: 1px solid var(--primary);
+        border-radius: 20px;
+        font-size: 12px;
+        color: var(--primary);
+        margin-bottom: 15px;
+    }
+    
+    .modal-body h2 {
+        font-family: 'Syne', sans-serif;
+        font-size: 32px;
+        margin-bottom: 20px;
+        color: #fff;
+    }
+    
+    .modal-body p {
+        font-size: 16px;
+        color: rgba(255, 255, 255, 0.7);
+        line-height: 1.8;
+        margin-bottom: 30px;
+    }
+
+    /* Enhanced Engagement Cards */
+    .engagement-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        margin-top: 40px;
+    }
+    
+    .enhanced-engage-card {
+        padding: 40px 30px;
+        text-align: center;
+        position: relative;
+        transition: all 0.4s ease;
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    
+    .enhanced-engage-card.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    .enhanced-engage-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 25px 60px rgba(0, 240, 255, 0.2);
+    }
+    
+    .popular-badge {
+        position: relative;
+    }
+    
+    .popular-label {
+        position: absolute;
+        top: -15px;
+        right: 20px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: #000;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .model-badge {
+        display: inline-block;
+        padding: 6px 14px;
+        background: rgba(0, 240, 255, 0.1);
+        border: 1px solid rgba(0, 240, 255, 0.3);
+        border-radius: 20px;
+        font-size: 11px;
+        color: var(--primary);
+        margin-bottom: 20px;
+    }
+    
+    .model-icon {
+        font-size: 50px;
+        color: #fff;
+        margin-bottom: 20px;
+        transition: all 0.4s ease;
+    }
+    
+    .enhanced-engage-card:hover .model-icon {
+        transform: scale(1.2) rotate(5deg);
+        color: var(--primary);
+    }
+    
+    .enhanced-engage-card h3 {
+        font-family: 'Syne', sans-serif;
+        margin-bottom: 10px;
+        font-size: 24px;
+        color: white;
+    }
+    
+    .enhanced-engage-card p {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.6);
+        margin-bottom: 25px;
+    }
+    
+    .enhanced-engage-card ul {
+        text-align: left;
+        list-style: none;
+        padding: 0;
+        line-height: 2.2;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 25px;
+    }
+    
+    .enhanced-engage-card ul i {
+        color: var(--primary);
+        margin-right: 10px;
+        font-size: 16px;
+    }
+    
+    .model-features {
+        display: flex;
+        justify-content: space-around;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        margin-top: 20px;
+    }
+    
+    .feature-item {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .feature-label {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .feature-value {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--primary);
+    }
+    
+    .highlight-card {
+        border-color: var(--primary);
+        box-shadow: 0 0 30px rgba(0, 240, 255, 0.2);
+        background: rgba(0, 240, 255, 0.03);
+    }
+    
+    /* Comparison Table */
+    .engagement-comparison {
+        margin-top: 60px;
+        padding: 40px;
+    }
+    
+    .comparison-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 24px;
+        margin-bottom: 30px;
+        text-align: center;
+        color: #fff;
+    }
+    
+    .comparison-grid {
+        display: grid;
+        grid-template-columns: 1fr repeat(3, 1.5fr);
+        gap: 1px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .comparison-header,
+    .comparison-row {
+        display: contents;
+    }
+    
+    .comp-cell {
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.02);
+        color: rgba(255, 255, 255, 0.8);
+        text-align: center;
+        font-size: 14px;
+    }
+    
+    .comparison-header .comp-cell {
+        background: rgba(0, 240, 255, 0.1);
+        color: #fff;
+        font-weight: 600;
+        font-family: 'Syne', sans-serif;
+    }
+    
+    .highlight-comp {
+        background: rgba(0, 240, 255, 0.15) !important;
+        color: var(--primary) !important;
+        font-weight: 600;
+    }
+
+    /* Enhanced Tech Stack */
+    .enhanced-tech-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 14px;
+        transition: all 0.4s ease;
+        padding: 25px 20px;
+        border-radius: 16px;
+        position: relative;
+        cursor: pointer;
+    }
+    
+    .enhanced-tech-box:hover {
+        color: #fff;
+        transform: translateY(-10px);
+        background: rgba(255, 255, 255, 0.03);
+    }
+    
+    .tech-icon-wrapper {
+        position: relative;
+        width: 70px;
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 240, 255, 0.1);
+        border-radius: 16px;
+        transition: all 0.4s ease;
+    }
+    
+    .enhanced-tech-box:hover .tech-icon-wrapper {
+        background: rgba(0, 240, 255, 0.2);
+        transform: scale(1.1) rotate(5deg);
+    }
+    
+    .tech-icon-wrapper i {
+        font-size: 36px;
+        color: var(--primary);
+        transition: all 0.4s ease;
+    }
+    
+    .tech-tooltip {
+        position: absolute;
+        bottom: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.9);
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.3s ease;
+        z-index: 10;
+    }
+    
+    .tech-tooltip::before {
+        content: '';
+        position: absolute;
+        top: -5px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-bottom: 5px solid rgba(0, 0, 0, 0.9);
+    }
+    
+    .enhanced-tech-box:hover .tech-tooltip {
+        opacity: 1;
+        bottom: -45px;
+    }
+    
+    .tech-progress {
+        width: 100%;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: 8px;
+    }
+    
+    .tech-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        border-radius: 2px;
+        width: 0%;
+        transition: width 1.5s ease;
+    }
+    
+    .enhanced-tech-box span {
+        font-weight: 500;
+        transition: color 0.3s ease;
+    }
+    
+    .enhanced-tech-box:hover span {
+        color: var(--primary);
+    }
+
+    /* Process Flow */
+    .process-flow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        max-width: 1200px;
+        margin: 60px auto 0;
+        padding: 0 20px;
+    }
+    
+    .enhanced-process-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.6s ease;
+    }
+    
+    .enhanced-process-step.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    .process-number {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--dark-1);
+        border: 3px solid var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--primary);
+        font-family: 'Syne', sans-serif;
+        z-index: 2;
+        position: relative;
+        transition: all 0.4s ease;
+    }
+    
+    .enhanced-process-step:hover .process-number {
+        transform: scale(1.15);
+        box-shadow: 0 0 30px rgba(0, 240, 255, 0.6);
+    }
+    
+    .process-content {
+        padding: 30px;
+        text-align: center;
+        min-width: 200px;
+        transition: all 0.4s ease;
+    }
+    
+    .enhanced-process-step:hover .process-content {
+        transform: translateY(-5px);
+        border-color: var(--primary);
+    }
+    
+    .process-content i {
+        font-size: 40px;
+        color: var(--primary);
+        margin-bottom: 15px;
+        display: block;
+    }
+    
+    .process-content h4 {
+        font-family: 'Syne', sans-serif;
+        font-size: 20px;
+        margin-bottom: 10px;
+        color: #fff;
+    }
+    
+    .process-content p {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .process-connector {
+        width: 60px;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        position: relative;
+    }
+    
+    .process-connector::after {
+        content: '';
+        position: absolute;
+        right: -8px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 0;
+        height: 0;
+        border-left: 8px solid var(--secondary);
+        border-top: 6px solid transparent;
+        border-bottom: 6px solid transparent;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .service-detail-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .tab-buttons {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .tab-indicator {
+            display: none;
+        }
+        
+        .process-flow {
+            flex-direction: column;
+        }
+        
+        .process-connector {
+            width: 3px;
+            height: 40px;
+            transform: rotate(90deg);
+        }
+        
+        .process-connector::after {
+            top: auto;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%) rotate(90deg);
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 8px solid var(--secondary);
+        }
+        
+        .comparison-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .comparison-header,
+        .comparison-row {
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+        
+        .comp-cell {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-content {
+            width: 95%;
+            max-height: 95vh;
+        }
+    }
+</style>
+{% endblock %}

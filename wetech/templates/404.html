@@ -1,0 +1,185 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Error | 404</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CORE RESET */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: #05050a;
+            color: #fff;
+            font-family: 'Fira Code', monospace; /* Monospace for terminal feel */
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* CRT SCANLINE EFFECT */
+        .scanlines {
+            position: fixed; inset: 0; pointer-events: none; z-index: 10;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .container {
+            text-align: center;
+            position: relative;
+            z-index: 5;
+            max-width: 600px;
+            padding: 20px;
+        }
+
+        /* GLITCH 404 TEXT */
+        .glitch-text {
+            font-family: 'Syne', sans-serif;
+            font-size: 120px;
+            font-weight: 800;
+            color: #fff;
+            position: relative;
+            margin-bottom: 20px;
+            letter-spacing: -5px;
+        }
+
+        .glitch-text::before, .glitch-text::after {
+            content: attr(data-text);
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        }
+
+        /* Glitch Animation Layers */
+        .glitch-text::before {
+            left: 2px; text-shadow: -1px 0 #ff0055; clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 5s infinite linear alternate-reverse;
+        }
+        .glitch-text::after {
+            left: -2px; text-shadow: -1px 0 #00f0ff; clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim2 5s infinite linear alternate-reverse;
+        }
+
+        /* TERMINAL OUTPUT */
+        .terminal-box {
+            background: rgba(0, 240, 255, 0.05);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: left;
+            min-height: 150px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.1);
+        }
+
+        .cmd-line {
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+            margin-bottom: 5px;
+            display: block;
+            opacity: 0; /* Hidden initially */
+            animation: fadeIn 0.1s forwards;
+        }
+        .cmd-line.error { color: #ff0055; }
+        .cmd-line.success { color: #00f0ff; }
+        .cursor { display: inline-block; width: 8px; height: 15px; background: #00f0ff; animation: blink 1s infinite; vertical-align: middle; }
+
+        /* BUTTON */
+        .btn-recovery {
+            display: inline-block;
+            background: #00f0ff; color: #000;
+            padding: 15px 40px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: 0.3s;
+        }
+        .btn-recovery:hover {
+            background: #fff;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+        }
+        .btn-show { opacity: 1; transform: translateY(0); }
+
+        /* ANIMATIONS */
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        @keyframes fadeIn { to { opacity: 1; } }
+        
+        @keyframes glitch-anim {
+            0% { clip: rect(30px, 9999px, 10px, 0); transform: skew(0.85deg); }
+            5% { clip: rect(50px, 9999px, 80px, 0); transform: skew(0.85deg); }
+            10% { clip: rect(10px, 9999px, 90px, 0); transform: skew(-0.5deg); }
+            15% { clip: rect(40px, 9999px, 20px, 0); transform: skew(0.2deg); }
+            20% { clip: rect(10px, 9999px, 80px, 0); transform: skew(0); }
+            100% { clip: rect(60px, 9999px, 100px, 0); transform: skew(0); }
+        }
+        @keyframes glitch-anim2 {
+            0% { clip: rect(10px, 9999px, 90px, 0); transform: skew(-0.85deg); }
+            5% { clip: rect(30px, 9999px, 10px, 0); transform: skew(-0.85deg); }
+            10% { clip: rect(80px, 9999px, 50px, 0); transform: skew(0.5deg); }
+            15% { clip: rect(20px, 9999px, 60px, 0); transform: skew(-0.2deg); }
+            20% { clip: rect(50px, 9999px, 20px, 0); transform: skew(0); }
+            100% { clip: rect(10px, 9999px, 100px, 0); transform: skew(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="scanlines"></div>
+
+    <div class="container">
+        <h1 class="glitch-text" data-text="404">404</h1>
+        
+        <div class="terminal-box" id="terminal">
+            <span class="cmd-line">> SYSTEM_CHECK_INTEGRITY...</span>
+        </div>
+
+        <a href="{% url 'home' %}" class="btn-recovery" id="recoveryBtn">
+            Initialize Recovery
+        </a>
+    </div>
+
+    <script>
+        const terminal = document.getElementById('terminal');
+        const btn = document.getElementById('recoveryBtn');
+        
+        // The script to type out
+        const lines = [
+            { text: "> ERROR: URL coordinates not found.", class: "error", delay: 800 },
+            { text: "> SEARCHING database for redirect...", class: "", delay: 1600 },
+            { text: "> FAILED. Sector 404 is void.", class: "error", delay: 2400 },
+            { text: "> REROUTING navigation systems...", class: "success", delay: 3200 },
+            { text: "> READY for manual override.", class: "success", delay: 3800 }
+        ];
+
+        // Typewriter logic
+        lines.forEach((line, index) => {
+            setTimeout(() => {
+                const p = document.createElement('span');
+                p.className = `cmd-line ${line.class}`;
+                p.innerText = line.text;
+                terminal.appendChild(p);
+                
+                // Keep cursor at bottom
+                if(index === lines.length - 1) {
+                    const cursor = document.createElement('span');
+                    cursor.className = 'cursor';
+                    terminal.appendChild(cursor);
+                    // Show Button
+                    btn.classList.add('btn-show');
+                }
+            }, line.delay);
+        });
+    </script>
+
+</body>
+</html>

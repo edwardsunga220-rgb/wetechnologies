@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ project.title }} | Case Study{% endblock %}
+
+{% block content %}
+
+<!-- CUSTOM STYLES -->
+<style>
+    /* --- 1. COMPACT HEADER --- */
+    .case-header { padding: 50px 0 30px 0; text-align: center; position: relative; }
+    .case-tag { display: inline-block; color: #00f0ff; border: 1px solid rgba(0, 240, 255, 0.3); background: rgba(0, 240, 255, 0.05); padding: 6px 16px; border-radius: 50px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; }
+    .case-title { font-family: 'Syne', sans-serif; font-size: 52px; color: white; margin-bottom: 10px; line-height: 1.1; background: linear-gradient(180deg, #fff, rgba(255,255,255,0.7)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    /* --- 2. HERO IMAGE --- */
+    .case-hero { width: 100%; border-radius: 20px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 0 50px rgba(0, 240, 255, 0.05); margin-bottom: 50px; position: relative; }
+    .case-hero img { width: 100%; height: auto; display: block; max-height: 600px; object-fit: cover; }
+
+    /* --- 3. LAYOUT GRID --- */
+    .case-grid { display: grid; grid-template-columns: 320px 1fr; gap: 50px; align-items: start; }
+    .case-sidebar { position: sticky; top: 120px; }
+
+    /* CARDS & TEXT */
+    .glass-card { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 30px; margin-bottom: 20px; }
+    .meta-row { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+    .meta-row:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+    .meta-label { display: block; font-size: 10px; text-transform: uppercase; color: rgba(255, 255, 255, 0.5); letter-spacing: 1px; margin-bottom: 5px; }
+    .meta-value { font-size: 15px; color: #fff; font-family: 'Syne', sans-serif; font-weight: 500; }
+    
+    .action-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 14px; border-radius: 8px; font-weight: 600; font-size: 13px; text-decoration: none; transition: 0.3s; margin-bottom: 10px; font-family: 'Outfit', sans-serif; }
+    .btn-live { background: #00f0ff; color: #000; border: none; }
+    .btn-live:hover { background: #fff; box-shadow: 0 0 15px rgba(0, 240, 255, 0.4); }
+    .btn-quote { background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); color: white; }
+    .btn-quote:hover { border-color: #00f0ff; color: #00f0ff; }
+    .btn-disabled { background: rgba(255,255,255,0.05); color: #666; cursor: not-allowed; }
+
+    .content-heading { font-family: 'Syne', sans-serif; font-size: 32px; color: white; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+    .rich-text { color: rgba(255, 255, 255, 0.75); font-size: 17px; line-height: 1.8; margin-bottom: 60px; }
+
+    /* GALLERY */
+    .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .gallery-item { position: relative; height: 240px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; }
+    .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+    .gallery-item:hover img { transform: scale(1.1); }
+    .zoom-icon { position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; }
+    .gallery-item:hover .zoom-icon { opacity: 1; }
+    .zoom-icon i { font-size: 30px; color: #00f0ff; }
+
+    /* --- 4. ADVANCED LIGHTBOX --- */
+    .lightbox { 
+        display: none; position: fixed; inset: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.96); z-index: 99999; 
+        flex-direction: column; align-items: center; justify-content: center; 
+        backdrop-filter: blur(15px); opacity: 0; transition: opacity 0.3s ease;
+    }
+    .lightbox.active { opacity: 1; }
+
+    .lightbox img { 
+        max-height: 80vh; max-width: 80vw; 
+        border: 1px solid rgba(255,255,255,0.2); 
+        box-shadow: 0 0 80px rgba(0,0,0,0.8); 
+        border-radius: 8px; cursor: pointer;
+        transform: scale(0.95); transition: transform 0.3s ease;
+    }
+    .lightbox.active img { transform: scale(1); }
+
+    /* Controls */
+    .lb-close-btn { 
+        position: absolute; top: 30px; right: 40px; 
+        background: #111; border: 1px solid rgba(255,255,255,0.3); color: white; 
+        padding: 10px 25px; border-radius: 50px; font-family: 'Outfit', sans-serif; 
+        font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.3s; 
+        z-index: 100000; display: flex; align-items: center; gap: 8px;
+    }
+    .lb-close-btn:hover { background: #ff0055; border-color: #ff0055; }
+
+    .lb-nav {
+        position: absolute; top: 50%; transform: translateY(-50%);
+        background: transparent; border: none; color: rgba(255,255,255,0.5);
+        font-size: 50px; cursor: pointer; padding: 20px; transition: 0.3s;
+        z-index: 100000;
+    }
+    .lb-nav:hover { color: #00f0ff; transform: translateY(-50%) scale(1.2); }
+    .lb-prev { left: 20px; }
+    .lb-next { right: 20px; }
+
+    .lb-footer {
+        position: absolute; bottom: 30px; 
+        color: rgba(255,255,255,0.5); font-size: 12px; 
+        text-transform: uppercase; letter-spacing: 2px;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .case-grid { grid-template-columns: 1fr; gap: 40px; }
+        .case-sidebar { position: static; order: 2; }
+        .case-content { order: 1; }
+        .case-title { font-size: 36px; }
+        .lb-close-btn { top: 20px; right: 20px; padding: 8px 16px; }
+        .lb-nav { font-size: 30px; padding: 10px; }
+        .lb-prev { left: 5px; } .lb-next { right: 5px; }
+    }
+</style>
+
+<!-- =======================
+     HTML CONTENT 
+======================== -->
+
+<div class="case-header">
+    <span class="case-tag">{{ project.get_category_display }}</span>
+    <h1 class="case-title">{{ project.title }}</h1>
+</div>
+
+<div class="case-hero">
+    <img src="{{ project.image.url }}" alt="{{ project.title }}">
+</div>
+
+<div class="case-grid">
+    <!-- SIDEBAR -->
+    <aside class="case-sidebar">
+        <div class="glass-card">
+            <div class="meta-row"><span class="meta-label">Client</span><span class="meta-value">{{ project.client_name }}</span></div>
+            <div class="meta-row"><span class="meta-label">Date</span><span class="meta-value">{{ project.completed_date|date:"F Y" }}</span></div>
+            <div class="meta-row"><span class="meta-label">Result</span><span class="meta-value" style="color: #00f0ff;">Successful</span></div>
+        </div>
+        <div class="glass-card">
+            <h4 style="color: white; font-family: 'Syne'; margin-bottom: 15px;">Project Actions</h4>
+            {% if project.live_link %}
+            <a href="{{ project.live_link }}" target="_blank" class="action-btn btn-live">VISIT LIVE SITE <i class="bi bi-arrow-up-right"></i></a>
+            {% else %}
+            <button class="action-btn btn-disabled" disabled><i class="bi bi-lock"></i> INTERNAL SYSTEM</button>
+            {% endif %}
+            <a href="{% url 'contact' %}" class="action-btn btn-quote">REQUEST SIMILAR</a>
+        </div>
+    </aside>
+
+    <!-- CONTENT -->
+    <article class="case-content">
+        <div class="text-section">
+            <h2 class="content-heading">The Challenge & Solution</h2>
+            <div class="rich-text">{{ project.description|linebreaks }}</div>
+        </div>
+
+        {% if project.gallery.all %}
+        <div class="gallery-section">
+            <h2 class="content-heading">System Interface</h2>
+            <div class="gallery-grid">
+                <!-- IMPORTANT: We use forloop.counter0 to pass index -->
+                {% for photo in project.gallery.all %}
+                <div class="gallery-item" onclick="openLightbox({{ forloop.counter0 }})">
+                    <img src="{{ photo.image.url }}" alt="Project Screenshot" class="gallery-img-data">
+                    <div class="zoom-icon"><i class="bi bi-zoom-in"></i></div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </article>
+</div>
+
+<!-- =======================
+     LIGHTBOX WITH NAV 
+======================== -->
+<div id="lightbox" class="lightbox" onclick="closeLightbox(event)">
+    
+    <!-- Top Close -->
+    <button class="lb-close-btn" onclick="closeLightbox(event)">CLOSE <i class="bi bi-x-lg"></i></button>
+
+    <!-- Navigation Arrows -->
+    <button class="lb-nav lb-prev" onclick="changeSlide(-1, event)"><i class="bi bi-chevron-left"></i></button>
+    <button class="lb-nav lb-next" onclick="changeSlide(1, event)"><i class="bi bi-chevron-right"></i></button>
+
+    <!-- Image (Click to Next) -->
+    <img id="lb-img" src="" onclick="changeSlide(1, event)">
+
+    <!-- Footer Info -->
+    <div class="lb-footer">
+        <span id="lb-counter">1</span> / <span id="lb-total">1</span>
+    </div>
+</div>
+
+<!-- =======================
+     SCRIPTS
+======================== -->
+<script>
+    // 1. Data Setup
+    let galleryImages = [];
+    let currentIndex = 0;
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Collect all images from the gallery grid
+        const imgElements = document.querySelectorAll('.gallery-img-data');
+        imgElements.forEach(img => {
+            galleryImages.push(img.src);
+        });
+
+        // Update Total Count
+        const totalSpan = document.getElementById('lb-total');
+        if(totalSpan) totalSpan.innerText = galleryImages.length;
+
+        // Move Lightbox to Body (The Z-Index Fix)
+        const lightbox = document.getElementById('lightbox');
+        if(lightbox) document.body.appendChild(lightbox);
+    });
+
+    // 2. Open Lightbox
+    function openLightbox(index) {
+        if(galleryImages.length === 0) return;
+
+        currentIndex = index;
+        updateLightboxImage();
+        
+        const lightbox = document.getElementById('lightbox');
+        lightbox.style.display = 'flex';
+        setTimeout(() => { lightbox.classList.add('active'); }, 10);
+        document.body.style.overflow = 'hidden';
+    }
+
+    // 3. Change Slide (Next/Prev)
+    function changeSlide(step, event) {
+        if(event) event.stopPropagation(); // Prevent closing when clicking arrows/image
+        
+        currentIndex += step;
+
+        // Loop Logic
+        if(currentIndex >= galleryImages.length) currentIndex = 0;
+        if(currentIndex < 0) currentIndex = galleryImages.length - 1;
+
+        updateLightboxImage();
+    }
+
+    // 4. Update Image Source & Counter
+    function updateLightboxImage() {
+        const img = document.getElementById('lb-img');
+        const counter = document.getElementById('lb-counter');
+        
+        // Small fade effect
+        img.style.opacity = '0.5';
+        setTimeout(() => {
+            img.src = galleryImages[currentIndex];
+            img.style.opacity = '1';
+        }, 150);
+
+        if(counter) counter.innerText = currentIndex + 1;
+    }
+
+    // 5. Close Lightbox
+    function closeLightbox(e) {
+        const lightbox = document.getElementById('lightbox');
+        lightbox.classList.remove('active');
+        setTimeout(() => {
+            lightbox.style.display = 'none';
+            document.getElementById('lb-img').src = ''; 
+            document.body.style.overflow = 'auto';
+        }, 300);
+    }
+
+    // 6. Keyboard Navigation
+    document.addEventListener('keydown', function(e) {
+        const lightbox = document.getElementById('lightbox');
+        if (lightbox.style.display === 'flex') {
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowRight') changeSlide(1);
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+        }
+    });
+</script>
+
+{% endblock %}

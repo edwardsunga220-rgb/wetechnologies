@@ -1,0 +1,1701 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- 1. Hero -->
+<section class="page-hero">
+    <div class="hero-text-center">
+        <span class="hero-badge"><i class="bi bi-calculator-fill"></i> Estimator</span>
+        <h1>Project Cost <span class="text-gradient">Calculator</span></h1>
+        <p>Get a rough estimate of your project scope instantly.</p>
+    </div>
+</section>
+
+<!-- 2. Step Progress Indicator -->
+<section class="calc-progress-section">
+    <div class="progress-steps">
+        <div class="progress-step active" data-step="1">
+            <div class="step-number">1</div>
+            <span>Solution Type</span>
+        </div>
+        <div class="progress-line"></div>
+        <div class="progress-step" data-step="2">
+            <div class="step-number">2</div>
+            <span>Package</span>
+        </div>
+        <div class="progress-line"></div>
+        <div class="progress-step" data-step="3">
+            <div class="step-number">3</div>
+            <span>Features</span>
+        </div>
+        <div class="progress-line"></div>
+        <div class="progress-step" data-step="4">
+            <div class="step-number">4</div>
+            <span>Review</span>
+        </div>
+    </div>
+</section>
+
+<!-- 3. Currency Converter -->
+<section class="currency-converter-section">
+    <div class="currency-toggle glass-card">
+        <span>Currency:</span>
+        <div class="currency-buttons">
+            <button class="currency-btn active" data-currency="TZS" onclick="changeCurrency('TZS')">TZS</button>
+            <button class="currency-btn" data-currency="USD" onclick="changeCurrency('USD')">USD</button>
+            <button class="currency-btn" data-currency="EUR" onclick="changeCurrency('EUR')">EUR</button>
+        </div>
+    </div>
+</section>
+
+<!-- 4. Calculator Wrapper -->
+<div class="calc-bg-wrapper">
+    <div class="calc-layout-grid">
+        <!-- Main Calculator Form -->
+        <section class="calculator-section glass-card">
+            <form id="calcForm">
+                {% csrf_token %}
+                
+                <!-- Solution Type Selection -->
+            <div class="calc-group">
+                <h3><i class="bi bi-layers"></i> 1. Solution Type</h3>
+                <p class="section-hint">Choose your development solution</p>
+                <div class="solution-type-grid">
+                    <label class="solution-type-card" onclick="selectSolutionType(this, 'web')" data-tooltip="Full-stack web applications built with Django, React, and modern frameworks">
+                        <input type="radio" name="solutionType" value="web" data-price="500000" data-usd="200" data-eur="180" class="hidden-radio" onchange="calculate()">
+                        <div class="solution-icon-wrapper">
+                            <i class="bi bi-laptop icon-lg"></i>
+                        </div>
+                        <h4>Web-Based System</h4>
+                        <p class="solution-price"><span class="price-amount" data-tzs="500000" data-usd="200" data-eur="180">500,000</span> <span class="currency-symbol">TZS</span></p>
+                        <p class="solution-desc">Full-stack web application</p>
+                        <div class="recommendation-badge" style="display:none;">Best for Web Apps</div>
+                    </label>
+                    
+                    <label class="solution-type-card" onclick="selectSolutionType(this, 'mobile')" data-tooltip="Cross-platform mobile apps using Flutter for iOS and Android">
+                        <input type="radio" name="solutionType" value="mobile" data-price="500000" data-usd="200" data-eur="180" class="hidden-radio" onchange="calculate()">
+                        <div class="solution-icon-wrapper">
+                            <i class="bi bi-phone icon-lg"></i>
+                        </div>
+                        <h4>Mobile Application</h4>
+                        <p class="solution-price"><span class="price-amount" data-tzs="500000" data-usd="200" data-eur="180">500,000</span> <span class="currency-symbol">TZS</span></p>
+                        <p class="solution-desc">Cross-platform mobile app</p>
+                        <div class="recommendation-badge" style="display:none;">Best for Mobile</div>
+                    </label>
+                    
+                    <label class="solution-type-card" onclick="selectSolutionType(this, 'custom')" data-tooltip="Tailored solutions with customizable packages and features">
+                        <input type="radio" name="solutionType" value="custom" data-price="0" data-usd="0" data-eur="0" class="hidden-radio" onchange="showCustomTiers()">
+                        <div class="solution-icon-wrapper">
+                            <i class="bi bi-gear icon-lg"></i>
+                        </div>
+                        <h4>Custom Solution</h4>
+                        <p class="solution-price">Choose Package</p>
+                        <p class="solution-desc">Tailored development</p>
+                        <div class="recommendation-badge" style="display:none;">Most Flexible</div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Custom Package Selection (Hidden by default) -->
+            <div class="calc-group" id="customPackageGroup" style="display: none;">
+                <h3><i class="bi bi-star"></i> 2. Custom Package</h3>
+                <p class="section-hint">Select your custom package tier</p>
+                <div class="package-tiers-grid">
+                    <label class="package-tier-card" onclick="selectPackageTier(this, 'basic')">
+                        <input type="radio" name="packageTier" value="basic" data-price="1500000" data-usd="600" data-eur="540" data-timeline="2-3 months" class="hidden-radio" onchange="calculate()">
+                        <div class="tier-badge-calc basic-badge-calc">Basic</div>
+                        <h4>Basic Package</h4>
+                        <p class="tier-price"><span class="price-amount" data-tzs="1500000" data-usd="600" data-eur="540">1,500,000</span> <span class="currency-symbol">TZS</span></p>
+                        <ul class="tier-features-list">
+                            <li><i class="bi bi-check2"></i> Up to 5 Core Features</li>
+                            <li><i class="bi bi-check2"></i> Basic UI/UX Design</li>
+                            <li><i class="bi bi-check2"></i> 2 Months Support</li>
+                        </ul>
+                    </label>
+                    
+                    <label class="package-tier-card popular-tier" onclick="selectPackageTier(this, 'standard')">
+                        <div class="popular-badge-calc">Recommended</div>
+                        <input type="radio" name="packageTier" value="standard" data-price="3500000" data-usd="1400" data-eur="1260" data-timeline="3-4 months" class="hidden-radio" onchange="calculate()">
+                        <div class="tier-badge-calc standard-badge-calc">Standard</div>
+                        <h4>Standard Package</h4>
+                        <p class="tier-price"><span class="price-amount" data-tzs="3500000" data-usd="1400" data-eur="1260">3,500,000</span> <span class="currency-symbol">TZS</span></p>
+                        <ul class="tier-features-list">
+                            <li><i class="bi bi-check2"></i> Up to 15 Core Features</li>
+                            <li><i class="bi bi-check2"></i> Professional UI/UX</li>
+                            <li><i class="bi bi-check2"></i> Payment Gateway</li>
+                            <li><i class="bi bi-check2"></i> 4 Months Support</li>
+                        </ul>
+                    </label>
+                    
+                    <label class="package-tier-card" onclick="selectPackageTier(this, 'premier')">
+                        <input type="radio" name="packageTier" value="premier" data-price="7500000" data-usd="3000" data-eur="2700" data-timeline="4-6 months" class="hidden-radio" onchange="calculate()">
+                        <div class="tier-badge-calc premier-badge-calc">Premier</div>
+                        <h4>Premier Package</h4>
+                        <p class="tier-price"><span class="price-amount" data-tzs="7500000" data-usd="3000" data-eur="2700">7,500,000</span> <span class="currency-symbol">TZS</span></p>
+                        <ul class="tier-features-list">
+                            <li><i class="bi bi-check2"></i> Unlimited Features</li>
+                            <li><i class="bi bi-check2"></i> Premium UI/UX Design</li>
+                            <li><i class="bi bi-check2"></i> Multi-payment Gateways</li>
+                            <li><i class="bi bi-check2"></i> Dedicated PM</li>
+                            <li><i class="bi bi-check2"></i> 6 Months Support</li>
+                        </ul>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Additional Features (Only for Custom) -->
+            <div class="calc-group" id="additionalFeaturesGroup" style="display: none;">
+                <h3><i class="bi bi-list-check"></i> 3. Additional Features</h3>
+                <p class="section-hint">Add extra features to your custom package</p>
+                <div class="feature-grid">
+                    <label class="feature-pill" data-tooltip="OAuth, 2FA, SSO, and advanced security features">
+                        <input type="checkbox" value="200000" data-name="Advanced Auth" data-usd="80" data-eur="72" class="calc-feature" onchange="calculate()">
+                        <span>Advanced Authentication</span>
+                        <span class="feature-price"><span class="price-amount" data-tzs="200000" data-usd="80" data-eur="72">200,000</span> <span class="currency-symbol">TZS</span></span>
+                    </label>
+                    <label class="feature-pill" data-tooltip="Pesapal, AzamPay, Stripe integration">
+                        <input type="checkbox" value="300000" data-name="Payment Gateway" data-usd="120" data-eur="108" class="calc-feature" onchange="calculate()">
+                        <span>Payment Gateway</span>
+                        <span class="feature-price"><span class="price-amount" data-tzs="300000" data-usd="120" data-eur="108">300,000</span> <span class="currency-symbol">TZS</span></span>
+                    </label>
+                    <label class="feature-pill" data-tooltip="WebSocket-based real-time messaging">
+                        <input type="checkbox" value="250000" data-name="Chat System" data-usd="100" data-eur="90" class="calc-feature" onchange="calculate()">
+                        <span>Real-time Chat</span>
+                        <span class="feature-price"><span class="price-amount" data-tzs="250000" data-usd="100" data-eur="90">250,000</span> <span class="currency-symbol">TZS</span></span>
+                    </label>
+                    <label class="feature-pill" data-tooltip="Google Maps, Location tracking, Geofencing">
+                        <input type="checkbox" value="400000" data-name="Maps/GPS" data-usd="160" data-eur="144" class="calc-feature" onchange="calculate()">
+                        <span>Maps / GPS Integration</span>
+                        <span class="feature-price"><span class="price-amount" data-tzs="400000" data-usd="160" data-eur="144">400,000</span> <span class="currency-symbol">TZS</span></span>
+                    </label>
+                    <label class="feature-pill" data-tooltip="Machine Learning, NLP, Chatbots">
+                        <input type="checkbox" value="500000" data-name="AI Integration" data-usd="200" data-eur="180" class="calc-feature" onchange="calculate()">
+                        <span>AI Integration</span>
+                        <span class="feature-price"><span class="price-amount" data-tzs="500000" data-usd="200" data-eur="180">500,000</span> <span class="currency-symbol">TZS</span></span>
+                    </label>
+                    <label class="feature-pill" data-tooltip="Mobile and web push notifications">
+                        <input type="checkbox" value="150000" data-name="Push Notifications" data-usd="60" data-eur="54" class="calc-feature" onchange="calculate()">
+                        <span>Push Notifications</span>
+                        <span class="feature-price"><span class="price-amount" data-tzs="150000" data-usd="60" data-eur="54">150,000</span> <span class="currency-symbol">TZS</span></span>
+                    </label>
+                    <label class="feature-pill" data-tooltip="Advanced analytics and reporting dashboard">
+                        <input type="checkbox" value="350000" data-name="Analytics" data-usd="140" data-eur="126" class="calc-feature" onchange="calculate()">
+                        <span>Analytics Dashboard</span>
+                        <span class="feature-price"><span class="price-amount" data-tzs="350000" data-usd="140" data-eur="126">350,000</span> <span class="currency-symbol">TZS</span></span>
+                    </label>
+                    <label class="feature-pill" data-tooltip="i18n support for multiple languages">
+                        <input type="checkbox" value="300000" data-name="Multi-language" data-usd="120" data-eur="108" class="calc-feature" onchange="calculate()">
+                        <span>Multi-language Support</span>
+                        <span class="feature-price"><span class="price-amount" data-tzs="300000" data-usd="120" data-eur="108">300,000</span> <span class="currency-symbol">TZS</span></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Total & Actions -->
+            <div class="calc-total">
+                <p style="color: rgba(255,255,255,0.6); font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Estimated Investment:</p>
+                <h2 id="totalPrice" class="animated-price">0<span class="currency-symbol"> TZS</span></h2>
+                <p id="priceBreakdown" style="color: rgba(255,255,255,0.5); font-size: 13px; margin-top: 10px;"></p>
+                
+                <!-- Visual Cost Breakdown -->
+                <div class="cost-breakdown-chart" id="costBreakdown" style="display: none;">
+                    <h4>Cost Breakdown</h4>
+                    <div class="breakdown-bars">
+                        <div class="breakdown-bar" id="basePriceBar">
+                            <div class="bar-label">Base Package</div>
+                            <div class="bar-fill" id="basePriceFill"></div>
+                        </div>
+                        <div class="breakdown-bar" id="featuresPriceBar">
+                            <div class="bar-label">Additional Features</div>
+                            <div class="bar-fill" id="featuresPriceFill"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Savings Calculator -->
+                <div class="savings-calc" id="savingsCalc" style="display: none;">
+                    <div class="savings-toggle">
+                        <label><input type="checkbox" id="yearlyDiscount" onchange="calculateSavings()"> Annual Contract (10% Discount)</label>
+                    </div>
+                    <div class="savings-display" id="savingsDisplay"></div>
+                </div>
+                
+                <div class="total-actions">
+                    <button type="button" class="btn-primary" onclick="submitEstimate()">
+                        Request Formal Quote <i class="bi bi-arrow-right"></i>
+                    </button>
+                    <button type="button" class="btn-secondary" onclick="exportQuote()">
+                        <i class="bi bi-download"></i> Export Quote
+                    </button>
+                    <button type="button" class="btn-secondary" onclick="resetCalc()">Reset Calculator</button>
+                </div>
+                <p id="submitMsg" style="margin-top:10px; font-size:12px; color:#00f0ff; display:none;">Quote Saved! Redirecting...</p>
+            </div>
+        </form>
+    </section>
+    
+    <!-- Live Preview Panel -->
+    <aside class="calc-preview-panel glass-card" id="previewPanel">
+        <div class="preview-header">
+            <h3><i class="bi bi-eye"></i> Live Preview</h3>
+            <button class="preview-toggle" onclick="togglePreview()" title="Close Preview" aria-label="Close Preview"><i class="bi bi-x"></i></button>
+        </div>
+        <div class="preview-content">
+            <!-- Estimated Timeline -->
+            <div class="preview-section">
+                <h4><i class="bi bi-clock"></i> Estimated Timeline</h4>
+                <div class="timeline-visual" id="timelineVisual">
+                    <div class="timeline-bar">
+                        <div class="timeline-progress" id="timelineProgress"></div>
+                    </div>
+                    <span class="timeline-text" id="timelineText">Select a package to see timeline</span>
+                </div>
+            </div>
+            
+            <!-- Success Metrics -->
+            <div class="preview-section">
+                <h4><i class="bi bi-graph-up"></i> Project Metrics</h4>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon"><i class="bi bi-people"></i></div>
+                        <div class="metric-value" id="usersMetric">-</div>
+                        <div class="metric-label">Users Supported</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon"><i class="bi bi-storage"></i></div>
+                        <div class="metric-value" id="storageMetric">-</div>
+                        <div class="metric-label">Storage Capacity</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon"><i class="bi bi-list-check"></i></div>
+                        <div class="metric-value" id="featuresMetric">-</div>
+                        <div class="metric-label">Total Features</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Package Recommendation -->
+            <div class="preview-section" id="recommendationSection" style="display: none;">
+                <h4><i class="bi bi-star-fill"></i> Recommendation</h4>
+                <div class="recommendation-card" id="recommendationCard"></div>
+            </div>
+            
+            <!-- Selected Features Preview -->
+            <div class="preview-section" id="featuresPreview" style="display: none;">
+                <h4><i class="bi bi-list-ul"></i> Selected Features</h4>
+                <ul class="preview-features-list" id="previewFeaturesList"></ul>
+            </div>
+        </div>
+    </aside>
+    </div>
+</div>
+
+<!-- SCRIPTS -->
+<script>
+    // Global State
+    let currentCurrency = 'TZS';
+    const exchangeRates = { TZS: 1, USD: 2500, EUR: 2778 }; // Approximate rates
+    let currentTotal = 0;
+    let display, breakdown; // Will be initialized in DOMContentLoaded
+    
+    // Currency Converter
+    function changeCurrency(currency) {
+        currentCurrency = currency;
+        document.querySelectorAll('.currency-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.currency === currency) btn.classList.add('active');
+        });
+        document.querySelectorAll('.currency-symbol').forEach(el => {
+            el.textContent = currency;
+        });
+        updateAllPrices();
+        calculate();
+    }
+    
+    function updateAllPrices() {
+        document.querySelectorAll('.price-amount').forEach(el => {
+            const tzs = parseFloat(el.dataset.tzs || 0);
+            const amount = currentCurrency === 'TZS' ? tzs : 
+                          currentCurrency === 'USD' ? (parseFloat(el.dataset.usd || 0)) : 
+                          (parseFloat(el.dataset.eur || 0));
+            el.textContent = amount.toLocaleString('en-US');
+        });
+    }
+    
+    // Step Progress Indicator
+    function updateStepProgress(step) {
+        document.querySelectorAll('.progress-step').forEach((s, index) => {
+            if (index + 1 <= step) {
+                s.classList.add('active');
+            } else {
+                s.classList.remove('active');
+            }
+        });
+    }
+    
+    // Solution Type Selection
+    function selectSolutionType(element, type) {
+        document.querySelectorAll('.solution-type-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        element.classList.add('selected');
+        
+        updateStepProgress(1);
+        
+        // Hide custom package selection if not custom
+        if (type !== 'custom') {
+            document.getElementById('customPackageGroup').style.display = 'none';
+            document.getElementById('additionalFeaturesGroup').style.display = 'none';
+            document.querySelectorAll('input[name="packageTier"]').forEach(radio => radio.checked = false);
+            updateStepProgress(4);
+        } else {
+            updateStepProgress(2);
+        }
+        
+        calculate();
+        updatePreview();
+    }
+    
+    // Show Custom Package Tiers
+    function showCustomTiers() {
+        document.getElementById('customPackageGroup').style.display = 'block';
+        document.getElementById('additionalFeaturesGroup').style.display = 'block';
+        updateStepProgress(2);
+        calculate();
+        updatePreview();
+    }
+    
+    // Package Tier Selection
+    function selectPackageTier(element, tier) {
+        document.querySelectorAll('.package-tier-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        element.classList.add('selected');
+        updateStepProgress(3);
+        calculate();
+        updatePreview();
+        showRecommendation();
+    }
+    
+    // Animated Counter
+    function animateCounter(element, target, duration = 800) {
+        if (!element) {
+            console.warn('Display element not found');
+            return;
+        }
+        
+        // Clear any existing animation
+        if (element._animationTimer) {
+            clearInterval(element._animationTimer);
+            element._animationTimer = null;
+        }
+        
+        // Parse current value from element
+        let start = 0;
+        try {
+            const currentText = element.textContent || element.innerText || '0';
+            const numText = currentText.replace(/[^0-9.]/g, '');
+            start = parseFloat(numText) || 0;
+        } catch (e) {
+            start = 0;
+        }
+        
+        // Round target to avoid floating point issues
+        target = Math.round(target);
+        
+        // If already at target, just update format
+        if (Math.abs(start - target) < 1 && target > 0) {
+            const formatted = target.toLocaleString('en-US');
+            element.innerHTML = formatted + '<span class="currency-symbol"> ' + currentCurrency + '</span>';
+            return;
+        }
+        
+        // If target is 0 and start is 0, just set it directly
+        if (target === 0 && start === 0) {
+            element.innerHTML = '0<span class="currency-symbol"> ' + currentCurrency + '</span>';
+            return;
+        }
+        
+        // Animate
+        const difference = target - start;
+        const steps = Math.ceil(duration / 16);
+        const increment = difference / steps;
+        let current = start;
+        let stepCount = 0;
+        
+        element._animationTimer = setInterval(() => {
+            stepCount++;
+            current += increment;
+            
+            // Check if we've reached the target or exceeded steps
+            if (stepCount >= steps || (increment > 0 && current >= target) || (increment < 0 && current <= target)) {
+                current = target;
+                clearInterval(element._animationTimer);
+                element._animationTimer = null;
+            }
+            
+            const formatted = Math.max(0, Math.floor(Math.abs(current))).toLocaleString('en-US');
+            element.innerHTML = formatted + '<span class="currency-symbol"> ' + currentCurrency + '</span>';
+        }, 16);
+    }
+    
+    // Calculation Logic
+    function calculate() {
+        // Ensure display elements are initialized
+        if (!display) display = document.getElementById('totalPrice');
+        if (!breakdown) breakdown = document.getElementById('priceBreakdown');
+        
+        let basePrice = 0;
+        let solutionType = '';
+        let packageTier = '';
+        let breakdownText = '';
+        
+        // Get selected solution type
+        const selectedSolution = document.querySelector('input[name="solutionType"]:checked');
+        if (!selectedSolution) {
+            if (display) animateCounter(display, 0);
+            if (breakdown) breakdown.innerText = '';
+            currentTotal = 0;
+            updateCostBreakdown(0, 0);
+            return 0;
+        }
+        
+        solutionType = selectedSolution.value;
+        
+        if (solutionType === 'web' || solutionType === 'mobile') {
+            const tzsPrice = parseInt(selectedSolution.dataset.price);
+            basePrice = currentCurrency === 'TZS' ? tzsPrice : 
+                       currentCurrency === 'USD' ? parseFloat(selectedSolution.dataset.usd) : 
+                       parseFloat(selectedSolution.dataset.eur);
+            breakdownText = `${solutionType === 'web' ? 'Web-Based System' : 'Mobile Application'}: ${basePrice.toLocaleString('en-US')} ${currentCurrency}`;
+        } else if (solutionType === 'custom') {
+            const selectedTier = document.querySelector('input[name="packageTier"]:checked');
+            if (!selectedTier) {
+                if (display) animateCounter(display, 0);
+                if (breakdown) breakdown.innerText = 'Please select a package tier';
+                currentTotal = 0;
+                updateCostBreakdown(0, 0);
+                return 0;
+            }
+            
+            const tzsPrice = parseInt(selectedTier.dataset.price);
+            basePrice = currentCurrency === 'TZS' ? tzsPrice : 
+                       currentCurrency === 'USD' ? parseFloat(selectedTier.dataset.usd) : 
+                       parseFloat(selectedTier.dataset.eur);
+            packageTier = selectedTier.value;
+            
+            const tierNames = {
+                'basic': 'Basic Package',
+                'standard': 'Standard Package',
+                'premier': 'Premier Package'
+            };
+            
+            breakdownText = `${tierNames[packageTier]}: ${basePrice.toLocaleString('en-US')} ${currentCurrency}`;
+        }
+        
+        // Add additional features (only for custom)
+        let featuresTotal = 0;
+        const selectedFeatures = [];
+        if (solutionType === 'custom') {
+            document.querySelectorAll('.calc-feature:checked').forEach(feature => {
+                const tzsPrice = parseInt(feature.value);
+                const featurePrice = currentCurrency === 'TZS' ? tzsPrice : 
+                                   currentCurrency === 'USD' ? parseFloat(feature.dataset.usd) : 
+                                   parseFloat(feature.dataset.eur);
+                featuresTotal += featurePrice;
+                selectedFeatures.push(feature.dataset.name);
+            });
+            
+            if (featuresTotal > 0) {
+                breakdownText += ` + Additional Features: ${featuresTotal.toLocaleString('en-US')} ${currentCurrency}`;
+            }
+        }
+        
+        const total = basePrice + featuresTotal;
+        currentTotal = total;
+        
+        // Update display with animation
+        if (display) {
+            animateCounter(display, total);
+        } else {
+            // Fallback if display not initialized yet
+            console.warn('Display element not ready, retrying...');
+            setTimeout(() => {
+                display = document.getElementById('totalPrice');
+                if (display) animateCounter(display, total);
+            }, 100);
+        }
+        if (breakdown) {
+            breakdown.innerText = breakdownText;
+        }
+        
+        updateCostBreakdown(basePrice, featuresTotal);
+        updatePreview();
+        calculateSavings();
+        
+        return total;
+    }
+    
+    // Cost Breakdown Visualization
+    function updateCostBreakdown(base, features) {
+        const total = base + features;
+        const breakdownEl = document.getElementById('costBreakdown');
+        
+        if (total > 0) {
+            breakdownEl.style.display = 'block';
+            const basePercent = total > 0 ? (base / total * 100) : 0;
+            const featuresPercent = total > 0 ? (features / total * 100) : 0;
+            
+            document.getElementById('basePriceFill').style.width = basePercent + '%';
+            document.getElementById('featuresPriceFill').style.width = featuresPercent + '%';
+        } else {
+            breakdownEl.style.display = 'none';
+        }
+    }
+    
+    // Savings Calculator
+    function calculateSavings() {
+        const yearlyDiscount = document.getElementById('yearlyDiscount');
+        const savingsDisplay = document.getElementById('savingsDisplay');
+        const savingsCalc = document.getElementById('savingsCalc');
+        
+        if (currentTotal > 0) {
+            savingsCalc.style.display = 'block';
+        } else {
+            savingsCalc.style.display = 'none';
+            return;
+        }
+        
+        if (yearlyDiscount.checked) {
+            const discount = currentTotal * 0.1;
+            const discountedTotal = currentTotal - discount;
+            savingsDisplay.innerHTML = `
+                <div class="savings-saved">You save: <strong>${discount.toLocaleString('en-US')} ${currentCurrency}</strong></div>
+                <div class="savings-total">Yearly Total: <strong>${discountedTotal.toLocaleString('en-US')} ${currentCurrency}</strong></div>
+            `;
+        } else {
+            savingsDisplay.innerHTML = '';
+        }
+    }
+    
+    // Update Preview Panel
+    function updatePreview() {
+        updateTimeline();
+        updateMetrics();
+        updateFeaturesPreview();
+    }
+    
+    // Timeline Visualization
+    function updateTimeline() {
+        const timelineText = document.getElementById('timelineText');
+        const timelineProgress = document.getElementById('timelineProgress');
+        const selectedTier = document.querySelector('input[name="packageTier"]:checked');
+        const selectedSolution = document.querySelector('input[name="solutionType"]:checked');
+        
+        let timeline = '';
+        let progress = 0;
+        
+        if (selectedSolution) {
+            if (selectedSolution.value === 'web' || selectedSolution.value === 'mobile') {
+                timeline = '2-3 months';
+                progress = 50;
+            } else if (selectedTier) {
+                timeline = selectedTier.dataset.timeline || '2-3 months';
+                progress = selectedTier.value === 'basic' ? 40 : selectedTier.value === 'standard' ? 60 : 80;
+            } else {
+                timeline = 'Select a package to see timeline';
+                progress = 0;
+            }
+        } else {
+            timeline = 'Select a solution type';
+            progress = 0;
+        }
+        
+        timelineText.textContent = timeline;
+        timelineProgress.style.width = progress + '%';
+    }
+    
+    // Success Metrics
+    function updateMetrics() {
+        const selectedTier = document.querySelector('input[name="packageTier"]:checked');
+        const selectedSolution = document.querySelector('input[name="solutionType"]:checked');
+        const features = document.querySelectorAll('.calc-feature:checked').length;
+        
+        if (!selectedSolution) {
+            document.getElementById('usersMetric').textContent = '-';
+            document.getElementById('storageMetric').textContent = '-';
+            document.getElementById('featuresMetric').textContent = '-';
+            return;
+        }
+        
+        let users = '-';
+        let storage = '-';
+        let totalFeatures = features;
+        
+        if (selectedSolution.value === 'web' || selectedSolution.value === 'mobile') {
+            users = '10K+';
+            storage = '50GB';
+            totalFeatures = '5-8';
+        } else if (selectedTier) {
+            if (selectedTier.value === 'basic') {
+                users = '1K+';
+                storage = '20GB';
+                totalFeatures = 5 + features;
+            } else if (selectedTier.value === 'standard') {
+                users = '10K+';
+                storage = '100GB';
+                totalFeatures = 15 + features;
+            } else if (selectedTier.value === 'premier') {
+                users = '100K+';
+                storage = '500GB+';
+                totalFeatures = 'Unlimited';
+            }
+        }
+        
+        animateMetric(document.getElementById('usersMetric'), users);
+        animateMetric(document.getElementById('storageMetric'), storage);
+        animateMetric(document.getElementById('featuresMetric'), totalFeatures.toString());
+    }
+    
+    function animateMetric(element, value) {
+        element.style.transform = 'scale(1.2)';
+        setTimeout(() => {
+            element.textContent = value;
+            element.style.transform = 'scale(1)';
+        }, 150);
+    }
+    
+    // Features Preview
+    function updateFeaturesPreview() {
+        const previewList = document.getElementById('previewFeaturesList');
+        const previewSection = document.getElementById('featuresPreview');
+        const selectedFeatures = [];
+        
+        document.querySelectorAll('.calc-feature:checked').forEach(feature => {
+            selectedFeatures.push(feature.dataset.name);
+        });
+        
+        if (selectedFeatures.length > 0) {
+            previewSection.style.display = 'block';
+            previewList.innerHTML = selectedFeatures.map(f => `<li><i class="bi bi-check2"></i> ${f}</li>`).join('');
+        } else {
+            previewSection.style.display = 'none';
+        }
+    }
+    
+    // Package Recommendation
+    function showRecommendation() {
+        const selectedFeatures = document.querySelectorAll('.calc-feature:checked').length;
+        const recommendationSection = document.getElementById('recommendationSection');
+        const recommendationCard = document.getElementById('recommendationCard');
+        
+        if (selectedFeatures > 5) {
+            recommendationSection.style.display = 'block';
+            recommendationCard.innerHTML = `
+                <div class="recommendation-content">
+                    <i class="bi bi-lightbulb-fill"></i>
+                    <p>Based on your selections, we recommend the <strong>Premier Package</strong> for optimal scalability and support.</p>
+                </div>
+            `;
+        } else if (selectedFeatures > 2) {
+            recommendationSection.style.display = 'block';
+            recommendationCard.innerHTML = `
+                <div class="recommendation-content">
+                    <i class="bi bi-star-fill"></i>
+                    <p>The <strong>Standard Package</strong> would be perfect for your needs with excellent value.</p>
+                </div>
+            `;
+        } else {
+            recommendationSection.style.display = 'none';
+        }
+    }
+    
+    // Toggle Preview Panel
+    function togglePreview() {
+        const panel = document.getElementById('previewPanel');
+        panel.classList.toggle('collapsed');
+    }
+    
+    // Export Quote
+    function exportQuote() {
+        const selectedSolution = document.querySelector('input[name="solutionType"]:checked');
+        if (!selectedSolution || currentTotal === 0) {
+            alert('Please complete your selection first.');
+            return;
+        }
+        
+        const solutionName = selectedSolution.value === 'web' ? 'Web-Based System' : 
+                            selectedSolution.value === 'mobile' ? 'Mobile Application' : 
+                            document.querySelector('input[name="packageTier"]:checked')?.closest('label').querySelector('h4').textContent || 'Custom Solution';
+        
+        const features = Array.from(document.querySelectorAll('.calc-feature:checked')).map(f => f.dataset.name);
+        const timeline = document.getElementById('timelineText').textContent;
+        
+        const quote = `
+PROJECT QUOTE - WeTech Technologies
+====================================
+
+Solution Type: ${solutionName}
+Estimated Cost: ${currentTotal.toLocaleString('en-US')} ${currentCurrency}
+Timeline: ${timeline}
+
+${features.length > 0 ? 'Selected Features:\n' + features.map(f => '- ' + f).join('\n') + '\n' : ''}
+
+This is an estimate. Final pricing may vary based on specific requirements.
+
+Generated: ${new Date().toLocaleDateString()}
+        `.trim();
+        
+        // Create and download file
+        const blob = new Blob([quote], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `wetech-quote-${Date.now()}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+    
+    // Tooltip initialization
+    function initTooltips() {
+        document.querySelectorAll('[data-tooltip]').forEach(el => {
+            el.addEventListener('mouseenter', function(e) {
+                const tooltip = document.createElement('div');
+                tooltip.className = 'calc-tooltip';
+                tooltip.textContent = this.dataset.tooltip;
+                document.body.appendChild(tooltip);
+                
+                const rect = this.getBoundingClientRect();
+                tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
+                tooltip.style.top = rect.top - tooltip.offsetHeight - 10 + 'px';
+                
+                this._tooltip = tooltip;
+            });
+            
+            el.addEventListener('mouseleave', function() {
+                if (this._tooltip) {
+                    this._tooltip.remove();
+                    this._tooltip = null;
+                }
+            });
+        });
+    }
+    
+    // Feature checkbox change handler
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize display elements
+        display = document.getElementById('totalPrice');
+        breakdown = document.getElementById('priceBreakdown');
+        
+        // Initialize tooltips
+        initTooltips();
+        updateAllPrices();
+        updateStepProgress(1);
+        
+        // Initialize calculate on page load
+        calculate();
+        
+        document.querySelectorAll('.calc-feature').forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                calculate();
+                updatePreview();
+                showRecommendation();
+            });
+        });
+    });
+
+    // Send Data to Backend
+    function submitEstimate() {
+        const selectedSolution = document.querySelector('input[name="solutionType"]:checked');
+        if (!selectedSolution) {
+            alert("Please select a solution type.");
+            return;
+        }
+        
+        const solutionType = selectedSolution.value;
+        let solutionName = '';
+        let packageTier = '';
+        const features = [];
+        
+        if (solutionType === 'web') {
+            solutionName = 'Web-Based System';
+        } else if (solutionType === 'mobile') {
+            solutionName = 'Mobile Application';
+        } else if (solutionType === 'custom') {
+            const selectedTier = document.querySelector('input[name="packageTier"]:checked');
+            if (!selectedTier) {
+                alert("Please select a custom package tier.");
+                return;
+            }
+            
+            packageTier = selectedTier.value;
+            const tierNames = {
+                'basic': 'Basic Package',
+                'standard': 'Standard Package',
+                'premier': 'Premier Package'
+            };
+            solutionName = tierNames[packageTier];
+            
+            // Get additional features
+            document.querySelectorAll('.calc-feature:checked').forEach(feature => {
+                features.push(feature.dataset.name);
+            });
+        }
+        
+        const total = calculate();
+        if (total === 0) {
+            alert("Please complete your selection.");
+            return;
+        }
+
+        // Convert to TZS for storage
+        const tzsTotal = currentCurrency === 'TZS' ? total : 
+                        currentCurrency === 'USD' ? total * exchangeRates.USD : 
+                        total * exchangeRates.EUR;
+        
+        // AJAX Request
+        fetch("{% url 'save_estimate' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                solution_type: solutionName,
+                package_tier: packageTier || null,
+                features: features,
+                total_price: Math.round(tzsTotal),
+                currency: currentCurrency
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'success') {
+                document.getElementById('submitMsg').style.display = 'block';
+                setTimeout(() => {
+                    window.location.href = "{% url 'contact' %}?ref=" + data.id;
+                }, 1000);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to save estimate. Please try again.');
+        });
+    }
+
+    function resetCalc() {
+        document.getElementById('calcForm').reset();
+        document.querySelectorAll('.solution-type-card, .package-tier-card').forEach(el => {
+            el.classList.remove('selected');
+        });
+        document.getElementById('customPackageGroup').style.display = 'none';
+        document.getElementById('additionalFeaturesGroup').style.display = 'none';
+        document.getElementById('yearlyDiscount').checked = false;
+        updateStepProgress(1);
+        currentCurrency = 'TZS';
+        changeCurrency('TZS');
+        calculate();
+        updatePreview();
+    }
+</script>
+
+<!-- STYLES -->
+<style>
+    /* Step Progress Indicator */
+    .calc-progress-section {
+        max-width: 1200px;
+        margin: 40px auto 30px;
+        padding: 0 20px;
+    }
+    .progress-steps {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+    }
+    .progress-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        opacity: 0.4;
+        transition: all 0.3s;
+    }
+    .progress-step.active {
+        opacity: 1;
+    }
+    .step-number {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.1);
+        border: 2px solid rgba(255,255,255,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 18px;
+        color: rgba(255,255,255,0.6);
+        transition: all 0.3s;
+    }
+    .progress-step.active .step-number {
+        background: linear-gradient(135deg, #00f0ff, #ff00d4);
+        border-color: #00f0ff;
+        color: #000;
+        box-shadow: 0 0 20px rgba(0,240,255,0.5);
+        transform: scale(1.1);
+    }
+    .progress-step span {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: rgba(255,255,255,0.6);
+    }
+    .progress-step.active span {
+        color: #00f0ff;
+    }
+    .progress-line {
+        width: 80px;
+        height: 2px;
+        background: rgba(255,255,255,0.1);
+        transition: all 0.3s;
+    }
+    .progress-step.active ~ .progress-line {
+        background: linear-gradient(90deg, #00f0ff, rgba(255,255,255,0.1));
+    }
+    
+    /* Currency Converter */
+    .currency-converter-section {
+        max-width: 1200px;
+        margin: 0 auto 30px;
+        padding: 0 20px;
+    }
+    .currency-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        padding: 15px 30px;
+        border-radius: 50px;
+    }
+    .currency-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    .currency-btn {
+        padding: 10px 20px;
+        border-radius: 25px;
+        border: 2px solid rgba(255,255,255,0.2);
+        background: rgba(255,255,255,0.05);
+        color: rgba(255,255,255,0.7);
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    .currency-btn.active {
+        background: linear-gradient(135deg, #00f0ff, #ff00d4);
+        border-color: #00f0ff;
+        color: #000;
+        box-shadow: 0 0 20px rgba(0,240,255,0.3);
+    }
+    .currency-btn:hover {
+        border-color: #00f0ff;
+        color: #00f0ff;
+    }
+    
+    /* Layout Grid */
+    .calc-layout-grid {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 30px;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+    
+    /* Background & Layout */
+    .calc-bg-wrapper {
+        padding: 60px 0 100px;
+        background: radial-gradient(circle at center, rgba(10, 20, 40, 1) 0%, #05050a 100%);
+    }
+    .calculator-section { 
+        padding: 50px; 
+        border-radius: 24px; 
+    }
+    
+    .calc-group {
+        margin-bottom: 40px;
+    }
+    
+    .calc-group h3 { 
+        font-family: 'Syne'; 
+        color: white; 
+        margin-bottom: 15px; 
+        font-size: 22px; 
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .section-hint { 
+        color: rgba(255,255,255,0.5); 
+        font-size: 13px; 
+        margin-bottom: 25px; 
+        text-transform: uppercase; 
+        letter-spacing: 1px; 
+    }
+
+    /* Solution Type Cards */
+    .solution-type-grid { 
+        display: grid; 
+        grid-template-columns: repeat(3, 1fr); 
+        gap: 20px; 
+    }
+    
+    .solution-type-card {
+        background: rgba(255,255,255,0.03); 
+        border: 2px solid rgba(255,255,255,0.1);
+        border-radius: 20px; 
+        padding: 30px; 
+        text-align: center; 
+        cursor: pointer; 
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        transform-style: preserve-3d;
+    }
+    
+    .solution-type-card:hover { 
+        transform: translateY(-8px) perspective(1000px) rotateX(5deg); 
+        background: rgba(255,255,255,0.06); 
+        border-color: rgba(0, 240, 255, 0.3);
+        box-shadow: 0 20px 40px rgba(0,240,255,0.2);
+    }
+    
+    .solution-type-card.selected { 
+        border-color: #00f0ff; 
+        background: rgba(0, 240, 255, 0.1); 
+        box-shadow: 0 0 30px rgba(0,240,255,0.3);
+    }
+    
+    .solution-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(255, 0, 212, 0.2));
+        border: 1px solid rgba(0, 240, 255, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+    
+    .solution-type-card.selected .solution-icon-wrapper {
+        background: linear-gradient(135deg, rgba(0, 240, 255, 0.3), rgba(255, 0, 212, 0.3));
+        transform: scale(1.1);
+    }
+    
+    .solution-type-card h4 {
+        font-family: 'Syne', sans-serif;
+        font-size: 20px;
+        font-weight: 700;
+        color: #fff;
+        margin: 0;
+    }
+    
+    .solution-price {
+        font-family: 'Syne', sans-serif;
+        font-size: 28px;
+        font-weight: 700;
+        color: #00f0ff;
+        margin: 5px 0;
+    }
+    
+    .solution-desc {
+        font-size: 14px;
+        color: rgba(255,255,255,0.6);
+        margin: 0;
+    }
+    
+    .hidden-radio { display: none; }
+    
+    .icon-lg { 
+        font-size: 36px; 
+        color: #00f0ff; 
+        transition: 0.3s; 
+    }
+
+    /* Package Tiers Grid */
+    .package-tiers-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
+    }
+    
+    .package-tier-card {
+        background: rgba(255,255,255,0.03);
+        border: 2px solid rgba(255,255,255,0.1);
+        border-radius: 20px;
+        padding: 30px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        transform-style: preserve-3d;
+    }
+    
+    .package-tier-card:hover {
+        transform: translateY(-8px) perspective(1000px) rotateX(5deg);
+        background: rgba(255,255,255,0.06);
+        border-color: rgba(0, 240, 255, 0.3);
+        box-shadow: 0 20px 40px rgba(0,240,255,0.2);
+    }
+    
+    .package-tier-card.selected {
+        border-color: #00f0ff;
+        background: rgba(0, 240, 255, 0.1);
+        box-shadow: 0 0 30px rgba(0,240,255,0.3);
+    }
+    
+    .popular-tier {
+        border-color: rgba(255, 0, 212, 0.3);
+    }
+    
+    .popular-tier.selected {
+        border-color: #ff00d4;
+        box-shadow: 0 0 30px rgba(255, 0, 212, 0.3);
+    }
+    
+    .popular-badge-calc {
+        position: absolute;
+        top: -12px;
+        right: 20px;
+        background: linear-gradient(135deg, #ff00d4, #ff00d4);
+        color: #fff;
+        padding: 6px 16px;
+        border-radius: 50px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .tier-badge-calc {
+        display: inline-block;
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+    }
+    
+    .basic-badge-calc {
+        background: rgba(0, 240, 255, 0.2);
+        color: #00f0ff;
+        border: 1px solid rgba(0, 240, 255, 0.3);
+    }
+    
+    .standard-badge-calc {
+        background: rgba(255, 0, 212, 0.2);
+        color: #ff00d4;
+        border: 1px solid rgba(255, 0, 212, 0.3);
+    }
+    
+    .premier-badge-calc {
+        background: rgba(157, 78, 221, 0.2);
+        color: #9d4edd;
+        border: 1px solid rgba(157, 78, 221, 0.3);
+    }
+    
+    .package-tier-card h4 {
+        font-family: 'Syne', sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+        color: #fff;
+        margin: 0;
+    }
+    
+    .tier-price {
+        font-family: 'Syne', sans-serif;
+        font-size: 32px;
+        font-weight: 700;
+        color: #00f0ff;
+        margin: 10px 0;
+    }
+    
+    .tier-features-list {
+        list-style: none;
+        padding: 0;
+        margin: 20px 0 0 0;
+        text-align: left;
+    }
+    
+    .tier-features-list li {
+        padding: 8px 0;
+        color: rgba(255,255,255,0.7);
+        font-size: 14px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .tier-features-list li i {
+        color: #00f0ff;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+    
+    .tier-features-list li:last-child {
+        border-bottom: none;
+    }
+
+    /* Feature Pills */
+    .feature-grid { 
+        display: flex; 
+        flex-wrap: wrap; 
+        gap: 12px; 
+    }
+    
+    .feature-pill {
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between;
+        gap: 8px; 
+        cursor: pointer;
+        background: rgba(255,255,255,0.03); 
+        padding: 12px 20px; 
+        border-radius: 30px;
+        border: 1px solid rgba(255,255,255,0.1); 
+        transition: all 0.3s ease; 
+        color: rgba(255,255,255,0.7);
+        position: relative;
+    }
+    
+    .feature-pill:hover { 
+        background: rgba(255,255,255,0.08); 
+        border-color: rgba(0, 240, 255, 0.3);
+        transform: translateY(-2px);
+    }
+    .feature-price {
+        font-size: 11px;
+        color: rgba(255,255,255,0.5);
+        margin-left: auto;
+    }
+    .feature-pill input:checked ~ .feature-price {
+        color: #00f0ff;
+    }
+    
+    /* Tooltips */
+    .calc-tooltip {
+        position: absolute;
+        background: rgba(10, 10, 18, 0.95);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0,240,255,0.3);
+        padding: 10px 15px;
+        border-radius: 8px;
+        color: #fff;
+        font-size: 12px;
+        max-width: 200px;
+        z-index: 10000;
+        pointer-events: none;
+        animation: tooltipFadeIn 0.2s ease-out;
+    }
+    @keyframes tooltipFadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .feature-pill input:checked + span {
+        color: #00f0ff;
+        font-weight: 600;
+    }
+    
+    .feature-pill input:checked ~ span {
+        color: #00f0ff;
+    }
+    
+    .feature-pill input { 
+        accent-color: #00f0ff; 
+        cursor: pointer;
+    }
+    
+    .feature-pill span {
+        cursor: pointer;
+    }
+
+    /* Total */
+    .calc-total { 
+        text-align: center; 
+        margin-top: 50px; 
+        padding-top: 40px; 
+        border-top: 2px solid rgba(255,255,255,0.1); 
+    }
+    
+    .calc-total h2 { 
+        font-size: 72px; 
+        font-family: 'Syne'; 
+        color: white; 
+        margin: 15px 0 20px; 
+        text-shadow: 0 0 40px rgba(0,240,255,0.4);
+        background: linear-gradient(135deg, #fff, #00f0ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: pricePulse 2s ease-in-out infinite;
+    }
+    @keyframes pricePulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+    }
+    
+    /* Cost Breakdown Chart */
+    .cost-breakdown-chart {
+        margin: 30px 0;
+        padding: 25px;
+        background: rgba(255,255,255,0.02);
+        border-radius: 15px;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    .cost-breakdown-chart h4 {
+        font-size: 16px;
+        margin-bottom: 20px;
+        color: rgba(255,255,255,0.8);
+    }
+    .breakdown-bars {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    .breakdown-bar {
+        position: relative;
+    }
+    .bar-label {
+        font-size: 12px;
+        color: rgba(255,255,255,0.6);
+        margin-bottom: 8px;
+    }
+    .bar-fill {
+        height: 30px;
+        background: linear-gradient(90deg, #00f0ff, #ff00d4);
+        border-radius: 15px;
+        transition: width 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 0 20px rgba(0,240,255,0.3);
+    }
+    
+    /* Savings Calculator */
+    .savings-calc {
+        margin: 25px 0;
+        padding: 20px;
+        background: rgba(0,240,255,0.05);
+        border: 1px solid rgba(0,240,255,0.2);
+        border-radius: 15px;
+    }
+    .savings-toggle label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: rgba(255,255,255,0.8);
+        cursor: pointer;
+    }
+    .savings-toggle input {
+        accent-color: #00f0ff;
+    }
+    .savings-display {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .savings-saved {
+        color: #00f0ff;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+    .savings-total {
+        color: rgba(255,255,255,0.8);
+        font-size: 16px;
+    }
+    
+    .total-actions {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+    
+    .btn-primary { 
+        background: linear-gradient(135deg, #00f0ff, #ff00d4); 
+        color: #000; 
+        padding: 16px 35px; 
+        border-radius: 50px; 
+        font-weight: 700; 
+        border: none; 
+        cursor: pointer; 
+        font-size: 16px; 
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .btn-primary:hover { 
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0,240,255,0.4); 
+    }
+    
+    .btn-secondary { 
+        background: rgba(255,255,255,0.05); 
+        color: rgba(255,255,255,0.7); 
+        border: 1px solid rgba(255,255,255,0.1);
+        padding: 16px 25px;
+        border-radius: 50px;
+        cursor: pointer; 
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-secondary:hover {
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+        border-color: rgba(255,255,255,0.2);
+    }
+    
+    /* Live Preview Panel */
+    .calc-preview-panel {
+        position: sticky;
+        top: 120px;
+        height: fit-content;
+        max-height: calc(100vh - 140px);
+        overflow-y: auto;
+        padding: 30px;
+        border-radius: 24px;
+        transition: all 0.3s;
+    }
+    .calc-preview-panel.collapsed {
+        display: none;
+    }
+    .preview-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .preview-header h3 {
+        font-size: 18px;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .preview-toggle {
+        background: none;
+        border: none;
+        color: rgba(255,255,255,0.6);
+        font-size: 20px;
+        cursor: pointer;
+        padding: 5px;
+    }
+    .preview-section {
+        margin-bottom: 30px;
+    }
+    .preview-section h4 {
+        font-size: 14px;
+        color: rgba(255,255,255,0.8);
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    /* Timeline Visualization */
+    .timeline-visual {
+        margin-top: 15px;
+    }
+    .timeline-bar {
+        width: 100%;
+        height: 8px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 10px;
+    }
+    .timeline-progress {
+        height: 100%;
+        background: linear-gradient(90deg, #00f0ff, #ff00d4);
+        border-radius: 10px;
+        transition: width 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 0 15px rgba(0,240,255,0.5);
+    }
+    .timeline-text {
+        font-size: 13px;
+        color: rgba(255,255,255,0.7);
+        display: block;
+        text-align: center;
+    }
+    
+    /* Success Metrics */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+    .metric-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 12px;
+        padding: 15px;
+        text-align: center;
+        transition: all 0.3s;
+    }
+    .metric-card:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(0,240,255,0.2);
+        transform: translateY(-3px);
+    }
+    .metric-icon {
+        font-size: 24px;
+        color: #00f0ff;
+        margin-bottom: 8px;
+    }
+    .metric-value {
+        font-size: 20px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 5px;
+        transition: transform 0.3s;
+    }
+    .metric-label {
+        font-size: 11px;
+        color: rgba(255,255,255,0.5);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Recommendation Card */
+    .recommendation-card {
+        background: rgba(255,0,212,0.1);
+        border: 1px solid rgba(255,0,212,0.3);
+        border-radius: 12px;
+        padding: 20px;
+    }
+    .recommendation-content {
+        display: flex;
+        gap: 15px;
+        align-items: start;
+    }
+    .recommendation-content i {
+        font-size: 24px;
+        color: #ff00d4;
+        flex-shrink: 0;
+    }
+    .recommendation-content p {
+        margin: 0;
+        color: rgba(255,255,255,0.9);
+        font-size: 13px;
+        line-height: 1.6;
+    }
+    
+    /* Features Preview List */
+    .preview-features-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .preview-features-list li {
+        padding: 8px 0;
+        color: rgba(255,255,255,0.8);
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .preview-features-list li:last-child {
+        border-bottom: none;
+    }
+    .preview-features-list i {
+        color: #00f0ff;
+        font-size: 14px;
+    }
+    
+    /* Recommendation Badge */
+    .recommendation-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: linear-gradient(135deg, #ff00d4, #c51162);
+        color: #fff;
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    @media (max-width: 1200px) {
+        .calc-layout-grid {
+            grid-template-columns: 1fr;
+        }
+        .calc-preview-panel {
+            position: relative;
+            top: 0;
+            margin-top: 30px;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .solution-type-grid,
+        .package-tiers-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .calculator-section {
+            padding: 30px 20px;
+        }
+        
+        .progress-steps {
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .progress-line {
+            width: 40px;
+        }
+        .metrics-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .calc-total h2 { 
+            font-size: 48px; 
+        }
+        
+        .total-actions {
+            flex-direction: column;
+        }
+        
+        .btn-primary,
+        .btn-secondary {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .solution-price,
+        .tier-price {
+            font-size: 24px;
+        }
+    }
+</style>
+{% endblock %}

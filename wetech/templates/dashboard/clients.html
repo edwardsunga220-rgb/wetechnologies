@@ -1,0 +1,1701 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+{% block dashboard_content %}
+<div style="max-width: 1400px; margin: 0 auto; padding-bottom: 50px;">
+    
+    <!-- Header -->
+    <div class="clients-header">
+        <div>
+            <h2 style="color: #fff; font-family: 'Syne'; margin: 0; font-size: 32px;">Client Leads</h2>
+            <p style="color: rgba(255,255,255,0.6); margin-top: 5px;">Manage and track your client leads and contacts</p>
+        </div>
+    </div>
+
+    <!-- Statistics Overview -->
+    <div class="clients-stats-grid">
+        <div class="glass-card stat-card-small">
+            <div class="stat-icon-small" style="background: rgba(0, 210, 255, 0.1); color: #00d2ff;">
+                <i class="bi bi-people"></i>
+            </div>
+            <div>
+                <div class="stat-value-small">{{ total_clients }}</div>
+                <div class="stat-label-small">Total Clients</div>
+            </div>
+        </div>
+        <div class="glass-card stat-card-small">
+            <div class="stat-icon-small" style="background: rgba(46, 204, 113, 0.1); color: #2ecc71;">
+                <i class="bi bi-calendar-check"></i>
+            </div>
+            <div>
+                <div class="stat-value-small">{{ recent_clients_7d }}</div>
+                <div class="stat-label-small">This Week</div>
+            </div>
+        </div>
+        <div class="glass-card stat-card-small">
+            <div class="stat-icon-small" style="background: rgba(241, 196, 15, 0.1); color: #f1c40f;">
+                <i class="bi bi-envelope-heart"></i>
+            </div>
+            <div>
+                <div class="stat-value-small">{{ email_clients }}</div>
+                <div class="stat-label-small">Email Leads</div>
+            </div>
+        </div>
+        <div class="glass-card stat-card-small">
+            <div class="stat-icon-small" style="background: rgba(37, 211, 102, 0.1); color: #25D366;">
+                <i class="bi bi-whatsapp"></i>
+            </div>
+            <div>
+                <div class="stat-value-small">{{ whatsapp_clients }}</div>
+                <div class="stat-label-small">WhatsApp Leads</div>
+            </div>
+        </div>
+        <div class="glass-card stat-card-small">
+            <div class="stat-icon-small" style="background: rgba(155, 89, 182, 0.1); color: #9b59b6;">
+                <i class="bi bi-funnel"></i>
+            </div>
+            <div>
+                <div class="stat-value-small">{{ new_clients }}</div>
+                <div class="stat-label-small">New Leads</div>
+            </div>
+        </div>
+        <div class="glass-card stat-card-small">
+            <div class="stat-icon-small" style="background: rgba(52, 152, 219, 0.1); color: #3498db;">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div>
+                <div class="stat-value-small">{{ converted_clients }}</div>
+                <div class="stat-label-small">Converted</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="clients-controls">
+        <!-- Search & Filters -->
+        <div class="controls-left">
+            <div class="search-wrapper">
+                <i class="bi bi-search"></i>
+                <input type="text" id="client-search" placeholder="Search clients..." class="search-input" title="Search clients">
+            </div>
+            <select id="source-filter" class="filter-select" title="Filter by Source">
+                <option value="all">All Sources</option>
+                {% for source in source_choices %}
+                <option value="{{ source }}">{{ source|default:"Website" }}</option>
+                {% endfor %}
+            </select>
+            <select id="status-filter" class="filter-select" title="Filter by Status">
+                <option value="all">All Statuses</option>
+                {% for status in status_choices %}
+                <option value="{{ status }}">{{ status }}</option>
+                {% endfor %}
+            </select>
+            <select id="sort-select" class="filter-select" title="Sort Clients">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="name">Name A-Z</option>
+                <option value="status">By Status</option>
+            </select>
+        </div>
+        
+        <!-- View Toggle & Bulk Actions -->
+        <div class="controls-right">
+            <div class="view-toggle">
+                <button class="view-btn active" type="button" data-view="table" onclick="setViewMode('table', this)">
+                    <i class="bi bi-list"></i> Table
+                </button>
+                <button class="view-btn" type="button" data-view="cards" onclick="setViewMode('cards', this)">
+                    <i class="bi bi-grid"></i> Cards
+                </button>
+                <button class="view-btn" type="button" data-view="timeline" onclick="setViewMode('timeline', this)">
+                    <i class="bi bi-clock-history"></i> Timeline
+                </button>
+            </div>
+            <div class="bulk-actions" id="bulk-actions" style="display: none;">
+                <span id="selected-count">0 selected</span>
+                <button class="btn-danger btn-sm" type="button" onclick="bulkDelete()">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Filters -->
+    <div class="active-filters" id="active-filters"></div>
+
+    <!-- Clients Content (Table View) -->
+    <div id="table-view" class="clients-view">
+        <div class="glass-card clients-table-wrapper">
+            <table class="clients-table">
+            <thead>
+                    <tr>
+                        <th style="width: 50px; text-align: center;">
+                            <label for="select-all-table" style="display: none;">Select All</label>
+                            <input type="checkbox" id="select-all-table" title="Select All Clients" onchange="toggleSelectAll(this)" style="width: 18px; height: 18px; cursor: pointer; accent-color: #00d2ff;">
+                        </th>
+                        <th style="width: 80px;">Avatar</th>
+                        <th style="min-width: 200px;">Name</th>
+                        <th style="min-width: 200px;">Contact</th>
+                        <th style="width: 120px;">Source</th>
+                        <th style="min-width: 150px;">Product</th>
+                        <th style="width: 140px;">Status</th>
+                        <th style="width: 120px;">Date</th>
+                        <th style="width: 160px; text-align: right;">Actions</th>
+                </tr>
+            </thead>
+                <tbody id="clients-tbody">
+                {% for client in clients %}
+                    <tr class="client-row" 
+                        data-client-id="{{ client.id }}"
+                        data-name="{{ client.name|lower }}"
+                        data-contact="{{ client.contact_info|lower }}"
+                        data-source="{{ client.source }}"
+                        data-status="{{ client.status }}"
+                        data-product="{{ client.product_interested|lower }}">
+                        <td style="text-align: center;">
+                            <label for="client-checkbox-{{ client.id }}" style="display: none;">Select Client</label>
+                            <input type="checkbox" class="client-checkbox" id="client-checkbox-{{ client.id }}" value="{{ client.id }}" title="Select this client" style="width: 18px; height: 18px; cursor: pointer; accent-color: #00d2ff;">
+                        </td>
+                        <td>
+                            <div class="avatar-circle" onclick="openPreviewModal({{ client.id }})">
+                                {{ client.name|slice:":1"|upper }}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="client-name-cell">
+                                <strong onclick="openPreviewModal({{ client.id }})" style="cursor: pointer;">{{ client.name }}</strong>
+                            </div>
+                        </td>
+                        <td>
+                        {% if '@' in client.contact_info %}
+                            <a href="{% url 'dash_email' %}?to={{ client.contact_info }}&name={{ client.name }}&product={{ client.product_interested }}" 
+                               class="contact-link" title="Click to Email">
+                                <i class="bi bi-envelope-fill"></i> {{ client.contact_info }}
+                            </a>
+                        {% else %}
+                            <span class="contact-phone">
+                                <i class="bi bi-telephone"></i> {{ client.contact_info }}
+                            </span>
+                        {% endif %}
+                    </td>
+                        <td>
+                        {% if client.source == 'WhatsApp' %}
+                            <span class="source-badge source-whatsapp">
+                                <i class="bi bi-whatsapp"></i> WhatsApp
+                            </span>
+                            {% elif client.source == 'Email' %}
+                            <span class="source-badge source-email">
+                                <i class="bi bi-envelope"></i> Email
+                            </span>
+                            {% else %}
+                            <span class="source-badge source-website">
+                                <i class="bi bi-globe"></i> Website
+                            </span>
+                        {% endif %}
+                    </td>
+                        <td>
+                            <span class="product-badge">{{ client.product_interested|truncatechars:30 }}</span>
+                        </td>
+                        <td>
+                            <select class="status-select" data-client-id="{{ client.id }}" onchange="updateStatus({{ client.id }}, this.value)" title="Change Status">
+                                <option value="New" {% if client.status == 'New' %}selected{% endif %}>New</option>
+                                <option value="Contacted" {% if client.status == 'Contacted' %}selected{% endif %}>Contacted</option>
+                                <option value="Qualified" {% if client.status == 'Qualified' %}selected{% endif %}>Qualified</option>
+                                <option value="Converted" {% if client.status == 'Converted' %}selected{% endif %}>Converted</option>
+                                <option value="Lost" {% if client.status == 'Lost' %}selected{% endif %}>Lost</option>
+                            </select>
+                        </td>
+                        <td>
+                            <span class="date-cell">
+                                <i class="bi bi-calendar3"></i> {{ client.created_at|date:"M d, Y" }}
+                        </span>
+                    </td>
+                        <td>
+                            <div class="action-buttons">
+                                {% if '@' in client.contact_info %}
+                                <a href="{% url 'dash_email' %}?to={{ client.contact_info }}&name={{ client.name }}&product={{ client.product_interested }}" 
+                                   class="action-btn-small email-btn" title="Send Email">
+                                    <i class="bi bi-envelope"></i>
+                                </a>
+                                {% else %}
+                                <a href="https://wa.me/{{ client.contact_info|slice:'1:'|default:'' }}" target="_blank" rel="noopener noreferrer"
+                                   class="action-btn-small whatsapp-btn" title="Open WhatsApp">
+                                    <i class="bi bi-whatsapp"></i>
+                                </a>
+                                {% endif %}
+                                <button class="action-btn-small preview-btn" onclick="openPreviewModal({{ client.id }})" title="Preview">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="action-btn-small delete-btn" onclick="deleteClient({{ client.id }})" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="9" style="padding: 60px; text-align: center; color: rgba(255,255,255,0.5);">
+                            <i class="bi bi-inbox" style="font-size: 48px; display: block; margin-bottom: 15px; opacity: 0.3;"></i>
+                            <p>No clients found. <a href="{% url 'contact' %}" style="color: #00d2ff;">View contact form</a></p>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if clients.has_other_pages %}
+        <div class="pagination-wrapper">
+            <div class="pagination-info">
+                Page {{ clients.number }} of {{ clients.paginator.num_pages }}
+            </div>
+            <div class="pagination-controls">
+                {% if clients.has_previous %}
+                <a href="?page={{ clients.previous_page_number }}" class="page-btn">
+                    <i class="bi bi-chevron-left"></i> Previous
+                </a>
+                {% else %}
+                <button class="page-btn disabled" disabled>
+                    <i class="bi bi-chevron-left"></i> Previous
+                </button>
+                {% endif %}
+                {% if clients.has_next %}
+                <a href="?page={{ clients.next_page_number }}" class="page-btn">
+                    Next <i class="bi bi-chevron-right"></i>
+                </a>
+                {% else %}
+                <button class="page-btn disabled" disabled>
+                    Next <i class="bi bi-chevron-right"></i>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Clients Content (Cards View) -->
+    <div id="cards-view" class="clients-view" style="display: none;">
+        <div class="clients-cards-grid">
+            {% for client in clients %}
+            <div class="client-card glass-card" 
+                 data-client-id="{{ client.id }}"
+                 data-name="{{ client.name|lower }}"
+                 data-contact="{{ client.contact_info|lower }}"
+                 data-source="{{ client.source }}"
+                 data-status="{{ client.status }}"
+                 data-product="{{ client.product_interested|lower }}">
+                <div class="card-checkbox">
+                    <label for="card-checkbox-{{ client.id }}" style="display: none;">Select Client</label>
+                    <input type="checkbox" class="client-checkbox" id="card-checkbox-{{ client.id }}" value="{{ client.id }}" title="Select this client" style="width: 18px; height: 18px; cursor: pointer; accent-color: #00d2ff;">
+                </div>
+                <div class="client-card-header" onclick="openPreviewModal({{ client.id }})">
+                    <div class="avatar-large">{{ client.name|slice:":1"|upper }}</div>
+                    <div class="client-info">
+                        <h4>{{ client.name }}</h4>
+                        <span class="client-date">{{ client.created_at|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+                <div class="client-card-body">
+                    <div class="contact-info-card">
+                        {% if '@' in client.contact_info %}
+                        <a href="{% url 'dash_email' %}?to={{ client.contact_info }}&name={{ client.name }}&product={{ client.product_interested }}" 
+                           class="contact-item">
+                            <i class="bi bi-envelope-fill"></i>
+                            <span>{{ client.contact_info }}</span>
+                        </a>
+                        {% else %}
+                        <div class="contact-item">
+                            <i class="bi bi-telephone"></i>
+                            <span>{{ client.contact_info }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="source-status-row">
+                        {% if client.source == 'WhatsApp' %}
+                        <span class="source-badge source-whatsapp">
+                            <i class="bi bi-whatsapp"></i> WhatsApp
+                        </span>
+                        {% elif client.source == 'Email' %}
+                        <span class="source-badge source-email">
+                            <i class="bi bi-envelope"></i> Email
+                        </span>
+                        {% else %}
+                        <span class="source-badge source-website">
+                            <i class="bi bi-globe"></i> Website
+                        </span>
+                        {% endif %}
+                        <select class="status-select-small" data-client-id="{{ client.id }}" onchange="updateStatus({{ client.id }}, this.value)" title="Change Status">
+                            <option value="New" {% if client.status == 'New' %}selected{% endif %}>New</option>
+                            <option value="Contacted" {% if client.status == 'Contacted' %}selected{% endif %}>Contacted</option>
+                            <option value="Qualified" {% if client.status == 'Qualified' %}selected{% endif %}>Qualified</option>
+                            <option value="Converted" {% if client.status == 'Converted' %}selected{% endif %}>Converted</option>
+                            <option value="Lost" {% if client.status == 'Lost' %}selected{% endif %}>Lost</option>
+                        </select>
+                    </div>
+                    <div class="product-interest">
+                        <i class="bi bi-tag"></i>
+                        <span>{{ client.product_interested|truncatechars:40 }}</span>
+                    </div>
+                </div>
+                <div class="client-card-footer">
+                    {% if '@' in client.contact_info %}
+                    <a href="{% url 'dash_email' %}?to={{ client.contact_info }}&name={{ client.name }}&product={{ client.product_interested }}" 
+                       class="card-action-btn email-btn" title="Send Email">
+                        <i class="bi bi-envelope"></i> Email
+                    </a>
+                    {% else %}
+                    <a href="https://wa.me/{{ client.contact_info|slice:'1:'|default:'' }}" target="_blank" rel="noopener noreferrer"
+                       class="card-action-btn whatsapp-btn" title="Open WhatsApp">
+                        <i class="bi bi-whatsapp"></i> WhatsApp
+                    </a>
+                    {% endif %}
+                    <button class="card-action-btn preview-btn" onclick="openPreviewModal({{ client.id }})" title="Preview">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="card-action-btn delete-btn" onclick="deleteClient({{ client.id }})" title="Delete">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Clients Content (Timeline View) -->
+    <div id="timeline-view" class="clients-view" style="display: none;">
+        <div class="timeline-container">
+            {% regroup clients by created_at|date:"Y-m" as clients_by_month %}
+            {% for month_group in clients_by_month %}
+            <div class="timeline-month">
+                <div class="timeline-month-header">
+                    <h3>{{ month_group.grouper|date:"F Y" }}</h3>
+                    <span class="month-count">{{ month_group.list|length }} client{{ month_group.list|length|pluralize }}</span>
+                </div>
+                <div class="timeline-clients">
+                    {% for client in month_group.list %}
+                    <div class="timeline-item glass-card" 
+                         data-client-id="{{ client.id }}"
+                         data-name="{{ client.name|lower }}"
+                         data-contact="{{ client.contact_info|lower }}"
+                         data-source="{{ client.source }}"
+                         data-status="{{ client.status }}"
+                         data-product="{{ client.product_interested|lower }}">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-checkbox">
+                                <label for="timeline-checkbox-{{ client.id }}" style="display: none;">Select Client</label>
+                                <input type="checkbox" class="client-checkbox" id="timeline-checkbox-{{ client.id }}" value="{{ client.id }}" title="Select this client" style="width: 18px; height: 18px; cursor: pointer; accent-color: #00d2ff;">
+                            </div>
+                            <div class="timeline-avatar" onclick="openPreviewModal({{ client.id }})">
+                                {{ client.name|slice:":1"|upper }}
+                            </div>
+                            <div class="timeline-info">
+                                <div class="timeline-header">
+                                    <h4 onclick="openPreviewModal({{ client.id }})" style="cursor: pointer;">{{ client.name }}</h4>
+                                    <span class="timeline-date">{{ client.created_at|date:"M d" }}</span>
+                                </div>
+                                <div class="timeline-contact">
+                                    {% if '@' in client.contact_info %}
+                                    <a href="{% url 'dash_email' %}?to={{ client.contact_info }}&name={{ client.name }}&product={{ client.product_interested }}" 
+                                       class="contact-link-small">
+                                        <i class="bi bi-envelope"></i> {{ client.contact_info }}
+                                    </a>
+                                    {% else %}
+                                    <span class="contact-phone-small">
+                                        <i class="bi bi-telephone"></i> {{ client.contact_info }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                <div class="timeline-badges">
+                                    {% if client.source == 'WhatsApp' %}
+                                    <span class="timeline-source source-whatsapp">
+                                        <i class="bi bi-whatsapp"></i> WhatsApp
+                                    </span>
+                                    {% elif client.source == 'Email' %}
+                                    <span class="timeline-source source-email">
+                                        <i class="bi bi-envelope"></i> Email
+                                    </span>
+                                    {% else %}
+                                    <span class="timeline-source source-website">
+                                        <i class="bi bi-globe"></i> Website
+                                    </span>
+                                    {% endif %}
+                                    <span class="timeline-product">{{ client.product_interested|truncatechars:30 }}</span>
+                                </div>
+                                <div class="timeline-actions">
+                                    {% if '@' in client.contact_info %}
+                                    <a href="{% url 'dash_email' %}?to={{ client.contact_info }}&name={{ client.name }}&product={{ client.product_interested }}" 
+                                       class="mini-btn email">
+                                        <i class="bi bi-envelope"></i>
+                                    </a>
+                                    {% else %}
+                                    <a href="https://wa.me/{{ client.contact_info|slice:'1:'|default:'' }}" target="_blank" rel="noopener noreferrer"
+                                       class="mini-btn whatsapp">
+                                        <i class="bi bi-whatsapp"></i>
+                                    </a>
+                                    {% endif %}
+                                    <button class="mini-btn preview" onclick="openPreviewModal({{ client.id }})">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="mini-btn delete" onclick="deleteClient({{ client.id }})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div id="preview-modal" class="modal">
+    <div class="modal-content modal-medium">
+        <div class="modal-header">
+            <h2 id="preview-title">Client Details</h2>
+            <button class="modal-close" type="button" onclick="closePreviewModal()">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <div class="modal-body" id="preview-body">
+            <!-- Preview content will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<style>
+/* Clients Page Styles */
+.clients-header {
+    margin-bottom: 30px;
+}
+
+.clients-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card-small {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+}
+
+.stat-icon-small {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.stat-value-small {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+}
+
+.stat-label-small {
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Controls */
+.clients-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.controls-left {
+    display: flex;
+    gap: 15px;
+    flex: 1;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.search-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 250px;
+}
+
+.search-wrapper i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255,255,255,0.4);
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 12px 12px 40px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #00d2ff;
+    background: rgba(0, 210, 255, 0.05);
+}
+
+.filter-select {
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    min-width: 150px;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: #00d2ff;
+}
+
+.filter-select option {
+    background: #1a1a2e;
+    color: #fff;
+}
+
+.controls-right {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.view-toggle {
+    display: flex;
+    gap: 5px;
+    background: rgba(255,255,255,0.05);
+    padding: 4px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.view-btn {
+        padding: 8px 16px;
+    background: transparent;
+    border: none;
+        border-radius: 6px;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+
+.view-btn.active {
+    background: rgba(0, 210, 255, 0.2);
+    color: #00d2ff;
+}
+
+.view-btn:hover {
+    color: #00d2ff;
+}
+
+.bulk-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.bulk-actions #selected-count {
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+}
+
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 13px;
+}
+
+.btn-danger {
+    background: rgba(231, 76, 60, 0.2);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    color: #e74c3c;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    padding: 8px 16px;
+}
+
+/* Active Filters */
+.active-filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(0, 210, 255, 0.1);
+    border: 1px solid rgba(0, 210, 255, 0.3);
+    border-radius: 20px;
+    color: #00d2ff;
+    font-size: 12px;
+}
+
+.filter-chip .close {
+    cursor: pointer;
+        font-size: 14px;
+}
+
+/* Table View */
+.clients-table-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+}
+
+.clients-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.clients-table thead {
+    background: linear-gradient(135deg, rgba(0, 210, 255, 0.1), rgba(112, 0, 255, 0.1));
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.clients-table th {
+    padding: 18px 20px;
+    text-align: left;
+    color: rgba(255,255,255,0.9);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    border-bottom: 2px solid rgba(0, 210, 255, 0.2);
+}
+
+.client-row {
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    transition: all 0.3s ease;
+}
+
+.client-row:hover {
+    background: rgba(0, 210, 255, 0.05);
+}
+
+.client-row td {
+    padding: 20px;
+    vertical-align: middle;
+}
+
+.avatar-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00d2ff, #7000ff);
+    color: #fff;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.avatar-circle:hover {
+    transform: scale(1.1);
+}
+
+.client-name-cell strong {
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    transition: color 0.3s;
+}
+
+.client-name-cell strong:hover {
+    color: #00d2ff;
+}
+
+.contact-link {
+    color: #00d2ff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.3s;
+}
+
+.contact-link:hover {
+    color: #fff;
+}
+
+.contact-phone {
+    color: rgba(255,255,255,0.7);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.source-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.source-whatsapp {
+    background: rgba(37, 211, 102, 0.15);
+    color: #25D366;
+    border: 1px solid rgba(37, 211, 102, 0.3);
+}
+
+.source-email {
+    background: rgba(234, 67, 53, 0.15);
+    color: #EA4335;
+    border: 1px solid rgba(234, 67, 53, 0.3);
+}
+
+.source-website {
+    background: rgba(52, 152, 219, 0.15);
+    color: #3498db;
+    border: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+.product-badge {
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.8);
+}
+
+.status-select {
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    min-width: 120px;
+}
+
+.status-select:focus {
+    outline: none;
+    border-color: #00d2ff;
+}
+
+.status-select option {
+    background: #1a1a2e;
+    color: #fff;
+}
+
+.date-cell {
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.action-btn-small {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1.5px solid transparent;
+    background: rgba(255,255,255,0.06);
+    cursor: pointer;
+    font-size: 15px;
+    border: none;
+}
+
+.action-btn-small:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.email-btn {
+    color: #EA4335;
+    border-color: rgba(234, 67, 53, 0.3);
+}
+
+.email-btn:hover {
+    background: rgba(234, 67, 53, 0.2);
+    border-color: #EA4335;
+}
+
+.whatsapp-btn {
+    color: #25D366;
+    border-color: rgba(37, 211, 102, 0.3);
+}
+
+.whatsapp-btn:hover {
+    background: rgba(37, 211, 102, 0.2);
+    border-color: #25D366;
+}
+
+.preview-btn {
+    color: #3498db;
+    border-color: rgba(52, 152, 219, 0.3);
+}
+
+.preview-btn:hover {
+    background: rgba(52, 152, 219, 0.2);
+    border-color: #3498db;
+}
+
+.delete-btn {
+    color: #e74c3c;
+    border-color: rgba(231, 76, 60, 0.3);
+}
+
+.delete-btn:hover {
+    background: rgba(231, 76, 60, 0.2);
+    border-color: #e74c3c;
+}
+
+/* Pagination */
+.pagination-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+}
+
+.pagination-info {
+    color: rgba(255,255,255,0.7);
+    font-size: 14px;
+}
+
+.pagination-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.page-btn {
+    padding: 10px 20px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.3s;
+        border: none;
+        cursor: pointer;
+}
+
+.page-btn:hover:not(.disabled) {
+    background: #00d2ff;
+    color: #000;
+}
+
+.page-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Cards View */
+.clients-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 25px;
+}
+
+.client-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 25px;
+    transition: 0.3s;
+    position: relative;
+}
+
+.client-card:hover {
+    border-color: #00d2ff;
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 210, 255, 0.2);
+}
+
+.card-checkbox {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 2;
+    background: rgba(0,0,0,0.5);
+    padding: 4px;
+    border-radius: 6px;
+}
+
+.client-card-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    cursor: pointer;
+}
+
+.avatar-large {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00d2ff, #7000ff);
+    color: #fff;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.client-info h4 {
+    margin: 0 0 5px;
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+}
+
+.client-date {
+    color: rgba(255,255,255,0.5);
+    font-size: 12px;
+}
+
+.client-card-body {
+    margin-bottom: 20px;
+}
+
+.contact-info-card {
+    margin-bottom: 15px;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    padding: 10px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    transition: 0.3s;
+}
+
+.contact-item:hover {
+    background: rgba(0, 210, 255, 0.1);
+    color: #00d2ff;
+}
+
+.source-status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.status-select-small {
+    padding: 6px 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    min-width: 100px;
+}
+
+.product-interest {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    color: rgba(255,255,255,0.8);
+    font-size: 13px;
+}
+
+.product-interest i {
+    color: #00d2ff;
+}
+
+.client-card-footer {
+    display: flex;
+    gap: 10px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.card-action-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.7);
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.card-action-btn:hover {
+    background: rgba(0, 210, 255, 0.2);
+    color: #00d2ff;
+}
+
+.email-btn:hover {
+    background: rgba(234, 67, 53, 0.2);
+    color: #EA4335;
+}
+
+.whatsapp-btn:hover {
+    background: rgba(37, 211, 102, 0.2);
+    color: #25D366;
+}
+
+/* Timeline View */
+.timeline-container {
+    position: relative;
+    padding-left: 40px;
+}
+
+.timeline-container::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, rgba(0, 210, 255, 0.3), rgba(112, 0, 255, 0.3));
+}
+
+.timeline-month {
+    margin-bottom: 50px;
+}
+
+.timeline-month-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.timeline-month-header h3 {
+    color: #fff;
+    font-size: 24px;
+    margin: 0;
+    font-family: 'Syne', sans-serif;
+}
+
+.month-count {
+    padding: 6px 14px;
+    background: rgba(0, 210, 255, 0.1);
+    border: 1px solid rgba(0, 210, 255, 0.3);
+    border-radius: 20px;
+    color: #00d2ff;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 30px;
+    margin-left: 40px;
+    padding: 25px;
+    border-radius: 16px;
+}
+
+.timeline-dot {
+    position: absolute;
+    left: -55px;
+    top: 30px;
+    width: 16px;
+    height: 16px;
+    background: #00d2ff;
+    border: 4px solid #1a1a2e;
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(0, 210, 255, 0.2);
+}
+
+.timeline-content {
+    display: grid;
+    grid-template-columns: auto 50px 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.timeline-checkbox {
+    padding-top: 5px;
+}
+
+.timeline-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00d2ff, #7000ff);
+    color: #fff;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.timeline-avatar:hover {
+    transform: scale(1.1);
+}
+
+.timeline-info h4 {
+    color: #fff;
+    font-size: 18px;
+    margin: 0 0 8px 0;
+    font-family: 'Syne', sans-serif;
+    transition: color 0.3s;
+}
+
+.timeline-info h4:hover {
+    color: #00d2ff;
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.timeline-date {
+    color: rgba(255,255,255,0.5);
+    font-size: 12px;
+}
+
+.timeline-contact {
+    margin-bottom: 12px;
+}
+
+.contact-link-small {
+    color: #00d2ff;
+    text-decoration: none;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.contact-phone-small {
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.timeline-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.timeline-source {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.timeline-product {
+    padding: 4px 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.7);
+}
+
+.timeline-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.mini-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+    transition: 0.3s;
+    cursor: pointer;
+    border: none;
+}
+
+.mini-btn:hover {
+    background: rgba(0, 210, 255, 0.1);
+    border-color: #00d2ff;
+    color: #00d2ff;
+}
+
+.mini-btn.email:hover {
+    background: rgba(234, 67, 53, 0.1);
+    border-color: #EA4335;
+    color: #EA4335;
+}
+
+.mini-btn.whatsapp:hover {
+    background: rgba(37, 211, 102, 0.1);
+    border-color: #25D366;
+    color: #25D366;
+}
+
+.mini-btn.delete:hover {
+    background: rgba(231, 76, 60, 0.1);
+    border-color: #e74c3c;
+    color: #e74c3c;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-content {
+    background: #1a1a2e;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    max-width: 700px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.modal-medium {
+    max-width: 800px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 30px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+}
+
+.modal-close {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 28px;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+.modal-close:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+}
+
+.modal-body {
+    padding: 30px;
+}
+
+@media (max-width: 768px) {
+    .clients-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .controls-left {
+        flex-direction: column;
+    }
+    .clients-cards-grid {
+        grid-template-columns: 1fr;
+    }
+    .timeline-content {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+// Store client data for preview
+const clientData = {
+    {% for client in clients %}
+    {{ client.id }}: {
+        name: "{{ client.name|escapejs }}",
+        contactInfo: "{{ client.contact_info|escapejs }}",
+        source: "{{ client.source|escapejs }}",
+        status: "{{ client.status|escapejs }}",
+        productInterested: "{{ client.product_interested|escapejs }}",
+        createdAt: "{{ client.created_at|date:'M d, Y' }}",
+        isEmail: {% if '@' in client.contact_info %}true{% else %}false{% endif %}
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+};
+
+// View Mode Toggle
+function setViewMode(mode, btn) {
+    document.querySelectorAll('.view-btn').forEach(function(b) {
+        b.classList.remove('active');
+    });
+    btn.classList.add('active');
+    
+    document.querySelectorAll('.clients-view').forEach(function(v) {
+        v.style.display = 'none';
+    });
+    document.getElementById(mode + '-view').style.display = 'block';
+    
+    applyFilters();
+}
+
+// Search and Filter
+let currentFilters = {
+    search: '',
+    source: 'all',
+    status: 'all',
+    sort: 'newest'
+};
+
+function applyFilters() {
+    const searchTerm = document.getElementById('client-search');
+    const sourceFilter = document.getElementById('source-filter');
+    const statusFilter = document.getElementById('status-filter');
+    const sortOption = document.getElementById('sort-select');
+    
+    const searchValue = searchTerm ? searchTerm.value.toLowerCase() : '';
+    const sourceValue = sourceFilter ? sourceFilter.value : 'all';
+    const statusValue = statusFilter ? statusFilter.value : 'all';
+    const sortValue = sortOption ? sortOption.value : 'newest';
+    
+    currentFilters = { search: searchValue, source: sourceValue, status: statusValue, sort: sortValue };
+    
+    const activeView = document.querySelector('.clients-view[style*="block"]') || document.getElementById('table-view');
+    if (!activeView) return;
+    
+    const items = activeView.querySelectorAll('.client-row, .client-card, .timeline-item');
+    const itemsArray = Array.from(items);
+    
+    // Filter
+    itemsArray.forEach(function(item) {
+        const name = item.dataset.name || '';
+        const contact = item.dataset.contact || '';
+        const source = item.dataset.source || '';
+        const status = item.dataset.status || '';
+        const product = item.dataset.product || '';
+        
+        const matchesSearch = !searchValue || name.includes(searchValue) || contact.includes(searchValue) || product.includes(searchValue);
+        const matchesSource = sourceValue === 'all' || source === sourceValue;
+        const matchesStatus = statusValue === 'all' || status === statusValue;
+        
+        if (matchesSearch && matchesSource && matchesStatus) {
+            item.style.display = '';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+    
+    updateActiveFilters();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('client-search');
+    const sourceFilter = document.getElementById('source-filter');
+    const statusFilter = document.getElementById('status-filter');
+    const sortSelect = document.getElementById('sort-select');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', applyFilters);
+    }
+    if (sourceFilter) {
+        sourceFilter.addEventListener('change', applyFilters);
+    }
+    if (statusFilter) {
+        statusFilter.addEventListener('change', applyFilters);
+    }
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function() {
+            // Sorting can be implemented here
+            applyFilters();
+        });
+    }
+    
+    document.querySelectorAll('.client-checkbox').forEach(function(cb) {
+        cb.addEventListener('change', updateBulkActions);
+    });
+    
+    const selectAll = document.getElementById('select-all-table');
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            const activeView = document.querySelector('.clients-view[style*="block"]') || document.getElementById('table-view');
+            if (activeView) {
+                activeView.querySelectorAll('.client-checkbox').forEach(function(cb) {
+                    cb.checked = this.checked;
+                }.bind(this));
+            }
+            updateBulkActions();
+        });
+    }
+});
+
+function toggleSelectAll(checkbox) {
+    const activeView = document.querySelector('.clients-view[style*="block"]') || document.getElementById('table-view');
+    if (activeView) {
+        activeView.querySelectorAll('.client-checkbox').forEach(function(cb) {
+            cb.checked = checkbox.checked;
+        });
+    }
+    updateBulkActions();
+}
+
+function updateBulkActions() {
+    const selected = document.querySelectorAll('.client-checkbox:checked');
+    const bulkActions = document.getElementById('bulk-actions');
+    const countEl = document.getElementById('selected-count');
+    
+    if (selected.length > 0) {
+        if (bulkActions) bulkActions.style.display = 'flex';
+        if (countEl) countEl.textContent = selected.length + ' selected';
+    } else {
+        if (bulkActions) bulkActions.style.display = 'none';
+    }
+}
+
+function bulkDelete() {
+    const selected = Array.from(document.querySelectorAll('.client-checkbox:checked')).map(function(cb) {
+        return cb.value;
+    });
+    if (selected.length === 0) return;
+    
+    if (confirm('Delete ' + selected.length + ' client(s)?')) {
+        // Chain delete requests - start with first client, pass remaining IDs as query params
+        const bulkIds = selected.join(',');
+        // Redirect to delete first client, passing the rest as bulk parameter
+        window.location.href = '/dashboard/clients/delete/' + selected[0] + '/?bulk=' + bulkIds + '&index=0';
+    }
+}
+
+function updateActiveFilters() {
+    const container = document.getElementById('active-filters');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    if (currentFilters.search) {
+        const chip = document.createElement('div');
+        chip.className = 'filter-chip';
+        chip.innerHTML = 'Search: "' + currentFilters.search + '" <span class="close" onclick="clearFilter(\'search\')">×</span>';
+        container.appendChild(chip);
+    }
+    
+    if (currentFilters.source !== 'all') {
+        const chip = document.createElement('div');
+        chip.className = 'filter-chip';
+        chip.innerHTML = 'Source: ' + currentFilters.source + ' <span class="close" onclick="clearFilter(\'source\')">×</span>';
+        container.appendChild(chip);
+    }
+    
+    if (currentFilters.status !== 'all') {
+        const chip = document.createElement('div');
+        chip.className = 'filter-chip';
+        chip.innerHTML = 'Status: ' + currentFilters.status + ' <span class="close" onclick="clearFilter(\'status\')">×</span>';
+        container.appendChild(chip);
+    }
+}
+
+function clearFilter(type) {
+    if (type === 'search') {
+        const searchEl = document.getElementById('client-search');
+        if (searchEl) searchEl.value = '';
+    } else if (type === 'source') {
+        const sourceEl = document.getElementById('source-filter');
+        if (sourceEl) sourceEl.value = 'all';
+    } else if (type === 'status') {
+        const statusEl = document.getElementById('status-filter');
+        if (statusEl) statusEl.value = 'all';
+    }
+    applyFilters();
+}
+
+function updateStatus(clientId, newStatus) {
+    // Note: This would require a backend endpoint to update status
+    console.log('Updating client', clientId, 'status to', newStatus);
+    // You would need to implement this with AJAX to your backend
+    alert('Status update functionality would require a backend endpoint. Please refresh the page to see changes.');
+}
+
+function deleteClient(clientId) {
+    if (confirm('Are you sure you want to delete this client?')) {
+        // Redirect to delete URL (similar to delete_product pattern)
+        window.location.href = '/dashboard/clients/delete/' + clientId + '/';
+    }
+}
+
+// Preview Modal
+function openPreviewModal(clientId) {
+    const client = clientData[clientId];
+    if (!client) return;
+    
+    const modal = document.getElementById('preview-modal');
+    const title = document.getElementById('preview-title');
+    const body = document.getElementById('preview-body');
+    
+    if (!modal || !title || !body) return;
+    
+    title.textContent = client.name;
+    
+    const sourceIcon = client.source === 'WhatsApp' ? 'bi-whatsapp' : client.source === 'Email' ? 'bi-envelope' : 'bi-globe';
+    const sourceClass = client.source === 'WhatsApp' ? 'source-whatsapp' : client.source === 'Email' ? 'source-email' : 'source-website';
+    
+    const contactAction = client.isEmail 
+        ? '<a href="{% url "dash_email" %}?to=' + encodeURIComponent(client.contactInfo) + '&name=' + encodeURIComponent(client.name) + '" class="btn-primary">Send Email</a>'
+        : '<a href="https://wa.me/' + client.contactInfo.replace(/\D/g, '') + '" target="_blank" rel="noopener noreferrer" class="btn-primary">Open WhatsApp</a>';
+    
+    body.innerHTML = 
+        '<div class="preview-content">' +
+            '<div class="preview-avatar-large">' +
+                '<div class="avatar-preview">' + client.name.charAt(0).toUpperCase() + '</div>' +
+            '</div>' +
+            '<div class="preview-details">' +
+                '<h3>' + client.name + '</h3>' +
+                '<div class="preview-meta-item">' +
+                    '<strong>Contact:</strong> ' + client.contactInfo +
+                '</div>' +
+                '<div class="preview-meta-item">' +
+                    '<strong>Source:</strong> <span class="source-badge ' + sourceClass + '"><i class="bi ' + sourceIcon + '"></i> ' + client.source + '</span>' +
+                '</div>' +
+                '<div class="preview-meta-item">' +
+                    '<strong>Status:</strong> <span class="status-badge">' + client.status + '</span>' +
+                '</div>' +
+                '<div class="preview-meta-item">' +
+                    '<strong>Product Interested:</strong> ' + client.productInterested +
+                '</div>' +
+                '<div class="preview-meta-item">' +
+                    '<strong>Date Added:</strong> ' + client.createdAt +
+                '</div>' +
+                '<div class="preview-actions">' +
+                    contactAction +
+                    '<button class="btn-secondary" onclick="closePreviewModal()">Close</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+    
+    modal.style.display = 'flex';
+}
+
+function closePreviewModal() {
+    const modal = document.getElementById('preview-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('preview-modal');
+    if (event.target == modal) {
+        closePreviewModal();
+    }
+};
+
+// Add preview modal styles
+const style = document.createElement('style');
+style.textContent = `
+.preview-content { display: grid; grid-template-columns: 150px 1fr; gap: 30px; align-items: start; }
+.preview-avatar-large { text-align: center; }
+.avatar-preview { width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, #00d2ff, #7000ff); color: #fff; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 48px; margin: 0 auto; }
+.preview-details h3 { color: #fff; font-size: 28px; margin: 0 0 20px 0; font-family: 'Syne', sans-serif; }
+.preview-meta-item { margin-bottom: 15px; color: rgba(255,255,255,0.8); font-size: 15px; }
+.preview-meta-item strong { color: rgba(255,255,255,0.6); margin-right: 10px; }
+.status-badge { padding: 4px 12px; background: rgba(0, 210, 255, 0.1); border: 1px solid rgba(0, 210, 255, 0.3); border-radius: 12px; color: #00d2ff; font-size: 13px; }
+.preview-actions { display: flex; gap: 15px; margin-top: 30px; }
+.preview-actions .btn-primary, .preview-actions .btn-secondary { padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer; }
+.preview-actions .btn-primary { background: linear-gradient(90deg, #00d2ff, #7000ff); color: #fff; }
+.preview-actions .btn-secondary { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; }
+@media (max-width: 768px) { .preview-content { grid-template-columns: 1fr; } .avatar-preview { width: 80px; height: 80px; font-size: 32px; } }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

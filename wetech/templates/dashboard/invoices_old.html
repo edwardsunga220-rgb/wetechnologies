@@ -1,0 +1,144 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block dashboard_content %}
+<div style="max-width: 1200px; margin: 0 auto; padding-bottom: 50px;">
+    
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px;">
+        <div>
+            <h2 style="color: #fff; font-family: 'Syne'; margin: 0; font-size: 32px;">Invoices</h2>
+            <p style="color: rgba(255,255,255,0.5); margin-top: 5px;">Manage billing and track payments.</p>
+        </div>
+        <button onclick="document.getElementById('createInvoiceModal').style.display='flex'" class="btn-primary" style="padding: 12px 25px; border-radius: 50px; border: none; background: #00d2ff; color: #000; font-weight: bold; cursor: pointer; transition: 0.3s;">
+            <i class="bi bi-plus-lg"></i> New Invoice
+        </button>
+    </div>
+
+    <!-- Table Card -->
+    <div class="glass-card fade-in-up" style="background: rgba(255,255,255,0.02); border-radius: 16px; overflow: hidden; padding: 0;">
+        <table style="width: 100%; border-collapse: collapse; color: #fff;">
+            <thead>
+                <tr style="background: rgba(255,255,255,0.02); text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <th style="padding: 20px; color: #888; font-size: 12px; text-transform: uppercase;">Invoice ID</th>
+                    <th style="padding: 20px; color: #888; font-size: 12px; text-transform: uppercase;">Client Details</th>
+                    <th style="padding: 20px; color: #888; font-size: 12px; text-transform: uppercase;">Amount</th>
+                    <th style="padding: 20px; color: #888; font-size: 12px; text-transform: uppercase;">Status</th>
+                    <th style="padding: 20px; color: #888; font-size: 12px; text-transform: uppercase;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice in invoices %}
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+                    <td style="padding: 20px; font-family: monospace; color: #00d2ff;">#{{ invoice.invoice_id }}</td>
+                    <td style="padding: 20px;">
+                        <span style="font-weight: 600; font-size: 15px;">{{ invoice.client.name }}</span><br>
+                        <small style="color: rgba(255,255,255,0.5);">{{ invoice.product_name }}</small>
+                    </td>
+                    <td style="padding: 20px; font-weight: bold;">${{ invoice.amount }}</td>
+                    <td style="padding: 20px;">
+                        {% if invoice.status == 'Paid' %}
+                        <span style="color: #2ecc71; background: rgba(46, 204, 113, 0.1); padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold;">PAID</span>
+                        {% else %}
+                        <span style="color: #e74c3c; background: rgba(231, 76, 60, 0.1); padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold;">UNPAID</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 20px;">
+                        <div style="display: flex; gap: 15px;">
+                            <a href="{% url 'view_invoice' invoice.invoice_id %}" target="_blank" title="View Invoice" style="color: #fff; opacity: 0.7; transition: 0.2s;"><i class="bi bi-eye-fill"></i></a>
+                            <a href="{% url 'update_invoice_status' invoice.id %}" title="Toggle Status" style="color: #f39c12; transition: 0.2s;"><i class="bi bi-arrow-repeat"></i></a>
+                            <a href="https://wa.me/{{ invoice.client.contact_info }}?text=Hello {{ invoice.client.name }}, Here is your invoice link: http://127.0.0.1:8000{% url 'view_invoice' invoice.invoice_id %}" target="_blank" title="Send via WhatsApp" style="color: #25D366; transition: 0.2s;"><i class="bi bi-whatsapp"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" style="padding: 40px; text-align: center; color: rgba(255,255,255,0.3);">No invoices generated yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Create Invoice Modal -->
+<div id="createInvoiceModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 999; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div class="glass-card fade-in-up" style="padding: 40px; width: 450px; background: #1a1a2e; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h3 style="color: white; margin: 0; font-family: 'Syne';">Generate Invoice</h3>
+            <button onclick="document.getElementById('createInvoiceModal').style.display='none'" style="background: none; border: none; color: #666; cursor: pointer; font-size: 20px;"><i class="bi bi-x-lg"></i></button>
+        </div>
+        
+        <form action="{% url 'create_invoice' %}" method="POST">
+            {% csrf_token %}
+            
+            <!-- Client Dropdown -->
+            <label style="color: #ccc; display: block; margin-bottom: 8px; font-size: 13px;">Select Client</label>
+            <div style="position: relative; margin-bottom: 20px;">
+                <select name="client" class="cyber-input" style="width: 100%;" required>
+                    <option value="" disabled selected>-- Choose a Client --</option>
+                    {% for client in clients %}
+                    <option value="{{ client.id }}">{{ client.name }} ({{ client.product_interested }})</option>
+                    {% empty %}
+                    <option disabled>No clients found</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Product Dropdown (FIXED) -->
+            <label style="color: #ccc; display: block; margin-bottom: 8px; font-size: 13px;">Select System</label>
+            <div style="position: relative; margin-bottom: 20px;">
+                <select name="product" class="cyber-input" style="width: 100%;" required>
+                    <option value="" disabled selected>-- Choose a System --</option>
+                    {% for product in products %}
+                    <option value="{{ product.id }}">{{ product.title }} (${{ product.price }})</option>
+                    {% empty %}
+                    <option disabled>No products available</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Amount Input -->
+            <label style="color: #ccc; display: block; margin-bottom: 8px; font-size: 13px;">Amount ($)</label>
+            <input type="number" name="amount" class="cyber-input" placeholder="0.00" required style="width: 100%; margin-bottom: 30px;">
+
+            <button type="submit" class="btn-primary" style="width: 100%; padding: 15px; border: none; background: linear-gradient(90deg, #00d2ff, #3a7bd5); color: white; font-weight: bold; border-radius: 10px; cursor: pointer;">
+                Create Invoice
+            </button>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Styling for Inputs and Selects to be consistent */
+    .cyber-input { 
+        width: 100%; 
+        padding: 12px 15px; 
+        background: rgba(255,255,255,0.05); 
+        border: 1px solid rgba(255,255,255,0.1); 
+        color: white; 
+        border-radius: 8px; 
+        outline: none; 
+        font-family: 'Outfit', sans-serif;
+        font-size: 14px;
+        appearance: none; /* Removes default arrow */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+    }
+
+    /* Custom Arrow for Select Boxes */
+    select.cyber-input {
+        background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2300d2ff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+        background-repeat: no-repeat;
+        background-position: right 15px top 50%;
+        background-size: 12px auto;
+        padding-right: 40px;
+    }
+
+    .cyber-input:focus { border-color: #00d2ff; background: rgba(0, 210, 255, 0.05); }
+    
+    /* Dark background for dropdown options */
+    select option { background: #1a1a2e; color: white; padding: 10px; }
+    
+    .fade-in-up { animation: fadeInUp 0.4s ease-out; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+{% endblock %}

@@ -1,0 +1,1332 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block dashboard_content %}
+<div style="max-width: 1200px; margin: 0 auto; padding-bottom: 50px;">
+    
+    <!-- 1. HEADER SECTION -->
+    <div class="dash-header-grid">
+        <div>
+            <p id="greeting" style="color: #00d2ff; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">Welcome Back</p>
+            <h2 style="color: #fff; font-family: 'Syne'; margin: 0; font-size: 32px;">{{ user.get_full_name|default:user.username }}</h2>
+            <p style="color: rgba(255,255,255,0.5); font-size: 14px; margin-top: 5px;">System Overview & Performance Metrics.</p>
+        </div>
+
+        <div class="dashboard-profile-container">
+            <div class="dashboard-profile-picture" title="{{ user.get_full_name|default:user.username }}">
+                {% if user.first_name or user.last_name %}
+                    <span class="dashboard-profile-initials">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</span>
+                {% else %}
+                    <span class="dashboard-profile-initials">{{ user.username|first|upper }}</span>
+                {% endif %}
+            </div>
+            <div class="dashboard-profile-info">
+                <div class="dashboard-profile-name">{{ user.get_full_name|default:user.username }}</div>
+                <div class="dashboard-profile-email">{{ user.email }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. QUICK ACTIONS RIBBON (Updated with News) -->
+    <div class="quick-actions">
+        <a href="{% url 'create_invoice' %}" class="action-pill">
+            <i class="bi bi-receipt-cutoff"></i> New Invoice
+        </a>
+        <a href="{% url 'dash_upload' %}" class="action-pill">
+            <i class="bi bi-box-seam"></i> Add Product
+        </a>
+        <a href="{% url 'dash_news_add' %}" class="action-pill">
+            <i class="bi bi-newspaper"></i> Post News
+        </a>
+        <a href="{% url 'dash_logs' %}" class="action-pill">
+            <i class="bi bi-envelope"></i> Messages
+        </a>
+    </div>
+
+    <!-- 2.5. Time Period Selector & Quick Search -->
+    <div class="dashboard-controls fade-in-up" style="animation-delay: 0.05s;">
+        <div class="period-selector">
+            <button class="period-btn active" data-period="month">This Month</button>
+            <button class="period-btn" data-period="week">This Week</button>
+            <button class="period-btn" data-period="year">This Year</button>
+            <button class="period-btn" data-period="all">All Time</button>
+        </div>
+        <div class="search-box-wrapper">
+            <i class="bi bi-search"></i>
+            <input type="text" id="quick-search" placeholder="Quick search..." class="quick-search-input">
+        </div>
+    </div>
+
+    <!-- 2.6. Smart Alerts Center -->
+    {% if alerts %}
+    <div class="alerts-center glass-card fade-in-up" style="animation-delay: 0.1s;">
+        <div class="alerts-header">
+            <h4><i class="bi bi-bell-fill"></i> Priority Alerts</h4>
+            <span class="alert-count">{{ alerts|length }}</span>
+        </div>
+        <div class="alerts-list">
+            {% for alert in alerts %}
+            <div class="alert-item alert-{{ alert.type }} priority-{{ alert.priority }}">
+                <div class="alert-icon">
+                    <i class="bi {{ alert.icon }}"></i>
+                </div>
+                <div class="alert-content">
+                    <strong>{{ alert.title }}</strong>
+                    <p>{{ alert.message }}</p>
+                </div>
+                <a href="{{ alert.url }}" class="alert-action">View <i class="bi bi-arrow-right"></i></a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 3. KPI CARDS (Enhanced with Trends) -->
+    <div class="stats-grid">
+        
+        <!-- Row 1: Operations -->
+        <div class="glass-card stat-card enhanced-stat fade-in-up" style="animation-delay: 0.2s;">
+            <div class="stat-icon icon-blue"><i class="bi bi-box-seam"></i></div>
+            <div class="stat-content">
+                <div class="stat-header">
+                    <h3>{{ total_products }}</h3>
+                    <span class="trend-indicator {% if products_trend > 0 %}trend-up{% elif products_trend < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                        {% if products_trend > 0 %}<i class="bi bi-arrow-up"></i>{% elif products_trend < 0 %}<i class="bi bi-arrow-down"></i>{% else %}<i class="bi bi-dash"></i>{% endif %}
+                        {{ products_trend|floatformat:0 }}%
+                    </span>
+                </div>
+                <span class="stat-label">Products</span>
+                <div class="mini-sparkline" id="sparkline-products"></div>
+            </div>
+        </div>
+
+        <div class="glass-card stat-card enhanced-stat fade-in-up" style="animation-delay: 0.3s;">
+            <div class="stat-icon icon-green"><i class="bi bi-people"></i></div>
+            <div class="stat-content">
+                <div class="stat-header">
+                    <h3>{{ total_clients }}</h3>
+                    <span class="trend-indicator {% if clients_trend > 0 %}trend-up{% elif clients_trend < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                        {% if clients_trend > 0 %}<i class="bi bi-arrow-up"></i>{% elif clients_trend < 0 %}<i class="bi bi-arrow-down"></i>{% else %}<i class="bi bi-dash"></i>{% endif %}
+                        {{ clients_trend|floatformat:0 }}%
+                    </span>
+                </div>
+                <span class="stat-label">Total Leads</span>
+                <div class="mini-sparkline" id="sparkline-clients"></div>
+            </div>
+        </div>
+
+        <div class="glass-card stat-card enhanced-stat fade-in-up" style="animation-delay: 0.4s;">
+            <div class="stat-icon icon-purple"><i class="bi bi-briefcase"></i></div>
+            <div class="stat-content">
+                <div class="stat-header">
+                    <h3>{{ total_projects }}</h3>
+                    <span class="trend-indicator {% if projects_trend > 0 %}trend-up{% elif projects_trend < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                        {% if projects_trend > 0 %}<i class="bi bi-arrow-up"></i>{% elif projects_trend < 0 %}<i class="bi bi-arrow-down"></i>{% else %}<i class="bi bi-dash"></i>{% endif %}
+                        {{ projects_trend|floatformat:0 }}%
+                    </span>
+                </div>
+                <span class="stat-label">Portfolio Cases</span>
+                <div class="mini-sparkline" id="sparkline-projects"></div>
+            </div>
+        </div>
+
+        <!-- Row 2: Engagement -->
+        <div class="glass-card stat-card enhanced-stat fade-in-up" style="animation-delay: 0.5s;">
+            <div class="stat-icon icon-orange"><i class="bi bi-chat-left-text"></i></div>
+            <div class="stat-content">
+                <div class="stat-header">
+                    <h3>{{ unread_msgs }}</h3>
+                    <span class="trend-indicator {% if msgs_trend > 0 %}trend-up{% elif msgs_trend < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                        {% if msgs_trend > 0 %}<i class="bi bi-arrow-up"></i>{% elif msgs_trend < 0 %}<i class="bi bi-arrow-down"></i>{% else %}<i class="bi bi-dash"></i>{% endif %}
+                        {{ msgs_trend|floatformat:0 }}%
+                    </span>
+                </div>
+                <span class="stat-label">New Msgs</span>
+                {% if unread_msgs > 0 %}<span class="pulse-dot"></span>{% endif %}
+            </div>
+        </div>
+
+        <div class="glass-card stat-card enhanced-stat fade-in-up" style="animation-delay: 0.6s;">
+            <div class="stat-icon icon-teal"><i class="bi bi-envelope-paper-heart"></i></div>
+            <div class="stat-content">
+                <div class="stat-header">
+                    <h3>{{ total_subscribers }}</h3>
+                    <span class="trend-indicator {% if subscribers_trend > 0 %}trend-up{% elif subscribers_trend < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                        {% if subscribers_trend > 0 %}<i class="bi bi-arrow-up"></i>{% elif subscribers_trend < 0 %}<i class="bi bi-arrow-down"></i>{% else %}<i class="bi bi-dash"></i>{% endif %}
+                        {{ subscribers_trend|floatformat:0 }}%
+                    </span>
+                </div>
+                <span class="stat-label">Subscribers</span>
+                <div class="mini-sparkline" id="sparkline-subscribers"></div>
+            </div>
+        </div>
+
+        <div class="glass-card stat-card enhanced-stat fade-in-up" style="animation-delay: 0.7s;">
+            <div class="stat-icon icon-pink"><i class="bi bi-journal-richtext"></i></div>
+            <div class="stat-content">
+                <h3>{{ total_news }}</h3>
+                <span class="stat-label">News Articles</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 3.5. Goal Tracking Widgets -->
+    <div class="goals-grid fade-in-up" style="animation-delay: 0.8s;">
+        <div class="glass-card goal-card">
+            <div class="goal-header">
+                <h4><i class="bi bi-bullseye"></i> Revenue Goal</h4>
+                <span class="goal-target">${{ revenue_goal|floatformat:0 }}</span>
+            </div>
+            <div class="goal-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ revenue_progress }}%"></div>
+                </div>
+                <div class="goal-stats">
+                    <span class="goal-current">${{ revenue_this_month|floatformat:0 }}</span>
+                    <span class="goal-percentage">{{ revenue_progress|floatformat:0 }}%</span>
+                </div>
+            </div>
+            {% if revenue_progress >= 100 %}
+            <div class="goal-achieved"><i class="bi bi-trophy-fill"></i> Goal Achieved!</div>
+            {% endif %}
+        </div>
+        
+        <div class="glass-card goal-card">
+            <div class="goal-header">
+                <h4><i class="bi bi-people-fill"></i> Clients Goal</h4>
+                <span class="goal-target">{{ clients_goal }} new clients</span>
+            </div>
+            <div class="goal-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ clients_progress }}%"></div>
+                </div>
+                <div class="goal-stats">
+                    <span class="goal-current">{{ clients_this_month }}</span>
+                    <span class="goal-percentage">{{ clients_progress|floatformat:0 }}%</span>
+                </div>
+            </div>
+            {% if clients_progress >= 100 %}
+            <div class="goal-achieved"><i class="bi bi-trophy-fill"></i> Goal Achieved!</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 4. CHARTS SECTION (Enhanced) -->
+    <div class="charts-grid fade-in-up" style="animation-delay: 0.9s;">
+        
+        <!-- Revenue Trends Chart -->
+        <div class="glass-card chart-container chart-large">
+            <div class="card-header">
+                <div>
+                    <h4><i class="bi bi-graph-up-arrow" style="color: #00d2ff;"></i> Revenue Trends</h4>
+                    <p class="chart-subtitle">Last 6 months performance</p>
+                </div>
+                <div class="revenue-summary">
+                    <div class="revenue-item">
+                        <span class="revenue-label">This Month</span>
+                        <span class="revenue-value">${{ revenue_this_month|floatformat:0 }}</span>
+                        <span class="trend-indicator {% if revenue_trend > 0 %}trend-up{% elif revenue_trend < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+                            {% if revenue_trend > 0 %}<i class="bi bi-arrow-up"></i>{% elif revenue_trend < 0 %}<i class="bi bi-arrow-down"></i>{% else %}<i class="bi bi-dash"></i>{% endif %}
+                            {{ revenue_trend|floatformat:1 }}%
+                        </span>
+                    </div>
+                    <div class="revenue-item">
+                        <span class="revenue-label">Total Revenue</span>
+                        <span class="revenue-value">${{ total_revenue|floatformat:0 }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="canvas-wrapper">
+                <canvas id="revenueTrendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Conversion Funnel -->
+        <div class="glass-card chart-container">
+            <div class="card-header">
+                <h4><i class="bi bi-funnel-fill" style="color: #9b59b6;"></i> Conversion Funnel</h4>
+            </div>
+            <div class="funnel-container">
+                <div class="funnel-stage">
+                    <div class="funnel-bar" style="width: 100%; background: linear-gradient(135deg, #3498db, #2980b9);">
+                        <span class="funnel-label">Contacts</span>
+                        <span class="funnel-count">{{ total_contacts }}</span>
+                    </div>
+                </div>
+                <div class="funnel-stage">
+                    <div class="funnel-bar" style="width: {{ conversion_leads }}%; background: linear-gradient(135deg, #2ecc71, #27ae60);">
+                        <span class="funnel-label">Leads ({{ conversion_leads|floatformat:1 }}%)</span>
+                        <span class="funnel-count">{{ total_leads }}</span>
+                    </div>
+                </div>
+                <div class="funnel-stage">
+                    <div class="funnel-bar" style="width: {{ conversion_invoices }}%; background: linear-gradient(135deg, #f39c12, #e67e22);">
+                        <span class="funnel-label">Invoices ({{ conversion_invoices|floatformat:1 }}%)</span>
+                        <span class="funnel-count">{{ total_invoices }}</span>
+                    </div>
+                </div>
+                <div class="funnel-stage">
+                    <div class="funnel-bar" style="width: {{ conversion_paid }}%; background: linear-gradient(135deg, #27ae60, #229954);">
+                        <span class="funnel-label">Paid ({{ conversion_paid|floatformat:1 }}%)</span>
+                        <span class="funnel-count">{{ total_paid }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4.5. Activity Feed & Performance Scorecard -->
+    <div class="dashboard-row fade-in-up" style="animation-delay: 1.0s;">
+        <!-- Activity Feed -->
+        <div class="glass-card activity-feed-card">
+            <div class="card-header">
+                <h4><i class="bi bi-activity"></i> Recent Activity</h4>
+                <button class="refresh-btn" onclick="refreshActivity()"><i class="bi bi-arrow-clockwise"></i></button>
+            </div>
+            <div class="activity-list" id="activity-list">
+                {% for activity in recent_activities %}
+                <div class="activity-item">
+                    <div class="activity-icon" style="background: {{ activity.color }}20; border-color: {{ activity.color }};">
+                        <i class="bi {{ activity.icon }}" style="color: {{ activity.color }};"></i>
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-message">{{ activity.message }}</p>
+                        <span class="activity-time">{{ activity.time|timesince }} ago</span>
+                    </div>
+                    <a href="{{ activity.url }}" class="activity-link"><i class="bi bi-arrow-right"></i></a>
+                </div>
+                {% empty %}
+                <div class="empty-activity">No recent activity</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Performance Scorecard -->
+        <div class="glass-card scorecard-card">
+            <div class="card-header">
+                <h4><i class="bi bi-speedometer2"></i> Business Health</h4>
+            </div>
+            <div class="scorecard-content">
+                <div class="health-score">
+                    <div class="score-circle" data-score="85">
+                        <svg class="score-ring" width="120" height="120">
+                            <circle class="score-ring-bg" cx="60" cy="60" r="50"></circle>
+                            <circle class="score-ring-fill" cx="60" cy="60" r="50" style="stroke-dasharray: 314; stroke-dashoffset: 47;"></circle>
+                        </svg>
+                        <div class="score-text">
+                            <span class="score-number">85</span>
+                            <span class="score-label">Health</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="score-metrics">
+                    <div class="score-metric">
+                        <div class="metric-bar">
+                            <div class="metric-fill" style="width: 92%; background: #2ecc71;"></div>
+                        </div>
+                        <span>Revenue Health</span>
+                        <strong>92%</strong>
+                    </div>
+                    <div class="score-metric">
+                        <div class="metric-bar">
+                            <div class="metric-fill" style="width: 78%; background: #3498db;"></div>
+                        </div>
+                        <span>Lead Generation</span>
+                        <strong>78%</strong>
+                    </div>
+                    <div class="score-metric">
+                        <div class="metric-bar">
+                            <div class="metric-fill" style="width: 85%; background: #f39c12;"></div>
+                        </div>
+                        <span>Client Satisfaction</span>
+                        <strong>85%</strong>
+                    </div>
+                    <div class="score-metric">
+                        <div class="metric-bar">
+                            <div class="metric-fill" style="width: 88%; background: #9b59b6;"></div>
+                        </div>
+                        <span>Content Engagement</span>
+                        <strong>88%</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4.7. Original Charts (Invoice Status & Lead Sources) -->
+    <div class="charts-grid fade-in-up" style="animation-delay: 1.1s;">
+        
+        <!-- Revenue Chart -->
+        <div class="glass-card chart-container">
+            <div class="card-header">
+                <h4><i class="bi bi-bar-chart-fill" style="color: #00d2ff;"></i> Invoice Status</h4>
+            </div>
+            <div class="canvas-wrapper">
+                <canvas id="invoiceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Lead Source Chart -->
+        <div class="glass-card chart-container">
+            <div class="card-header">
+                <h4><i class="bi bi-pie-chart-fill" style="color: #f39c12;"></i> Lead Sources</h4>
+            </div>
+            <div class="canvas-wrapper-doughnut">
+                <canvas id="sourceChart"></canvas>
+            </div>
+            <div class="chart-legend">
+                <div class="legend-item"><span class="dot-wa"></span> WhatsApp</div>
+                <div class="legend-item"><span class="dot-email"></span> Email</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. RECENT LEADS TABLE -->
+    <div class="glass-card fade-in-up" style="margin-top: 30px; animation-delay: 0.8s; padding: 0; overflow: hidden;">
+        <div class="card-header" style="padding: 20px;">
+            <h4 style="margin: 0; color: white;">Recent Leads & Clients</h4>
+            <a href="{% url 'dash_clients' %}" style="font-size: 12px; color: #00d2ff; text-decoration: none;">View All</a>
+        </div>
+        
+        <table style="width: 100%; border-collapse: collapse; color: #fff;">
+            <thead>
+                <tr style="background: rgba(255,255,255,0.02); text-align: left;">
+                    <th style="padding: 15px 20px; color: #666; font-size: 11px; text-transform: uppercase;">Time</th>
+                    <th style="padding: 15px 20px; color: #666; font-size: 11px; text-transform: uppercase;">User</th>
+                    <th style="padding: 15px 20px; color: #666; font-size: 11px; text-transform: uppercase;">Interest</th>
+                    <th style="padding: 15px 20px; color: #666; font-size: 11px; text-transform: uppercase;">Source</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lead in recent_leads %}
+                <tr class="table-row">
+                    <td style="padding: 15px 20px; color: #888; font-size: 13px;">{{ lead.created_at|timesince }} ago</td>
+                    <td style="padding: 15px 20px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="avatar-circle">{{ lead.name|slice:":1" }}</div>
+                            <span style="font-weight: 500;">{{ lead.name }}</span>
+                        </div>
+                    </td>
+                    <td style="padding: 15px 20px; color: #ccc;">{{ lead.product_interested|default:"General Inquiry" }}</td>
+                    <td style="padding: 15px 20px;">
+                        {% if lead.source == 'WhatsApp' %}
+                        <span class="badge-wa"><i class="bi bi-whatsapp"></i> WhatsApp</span>
+                        {% else %}
+                        <span class="badge-email"><i class="bi bi-envelope"></i> Email</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" style="padding: 30px; text-align: center; color: #666;">No recent activity.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // 1. CLOCK
+    function updateClock() {
+        const now = new Date();
+        const clockEl = document.getElementById('liveClock');
+        const dateEl = document.getElementById('liveDate');
+        const greetingEl = document.getElementById('greeting');
+        
+        if (clockEl) clockEl.innerText = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute:'2-digit' });
+        if (dateEl) dateEl.innerText = now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+        
+        const hour = now.getHours();
+        let greeting = hour < 12 ? "Good Morning" : (hour < 18 ? "Good Afternoon" : "Good Evening");
+        if (greetingEl) greetingEl.innerText = greeting;
+    }
+    setInterval(updateClock, 1000); 
+    updateClock();
+
+    // 2. CHARTS - Initialize after DOM and Chart.js are ready
+    document.addEventListener('DOMContentLoaded', function() {
+        // Wait for Chart.js to be available
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js is not loaded');
+            return;
+        }
+
+        // Invoice Status Chart
+        const invoiceCanvas = document.getElementById('invoiceChart');
+        if (invoiceCanvas) {
+            try {
+                const ctx1 = invoiceCanvas.getContext('2d');
+                let gradPaid = ctx1.createLinearGradient(0, 0, 0, 300); 
+                gradPaid.addColorStop(0, 'rgba(46, 204, 113, 0.8)'); 
+                gradPaid.addColorStop(1, 'rgba(46, 204, 113, 0.1)');
+                let gradUnpaid = ctx1.createLinearGradient(0, 0, 0, 300); 
+                gradUnpaid.addColorStop(0, 'rgba(231, 76, 60, 0.8)'); 
+                gradUnpaid.addColorStop(1, 'rgba(231, 76, 60, 0.1)');
+
+                new Chart(ctx1, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Paid', 'Unpaid'],
+                        datasets: [{ 
+                            label: 'Invoices', 
+                            data: [{{ paid_inv|default:0 }}, {{ unpaid_inv|default:0 }}], 
+                            backgroundColor: [gradPaid, gradUnpaid], 
+                            borderRadius: 5, 
+                            barThickness: 50 
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        plugins: { legend: { display: false } }, 
+                        scales: { 
+                            y: { 
+                                grid: { color: 'rgba(255,255,255,0.05)' }, 
+                                ticks: { color: 'rgba(255,255,255,0.6)', beginAtZero: true } 
+                            }, 
+                            x: { 
+                                grid: { display: false }, 
+                                ticks: { color: 'rgba(255,255,255,0.6)' } 
+                            } 
+                        } 
+                    }
+                });
+            } catch (error) {
+                console.error('Error creating invoice chart:', error);
+            }
+        }
+
+        // Lead Sources Chart
+        const sourceCanvas = document.getElementById('sourceChart');
+        if (sourceCanvas) {
+            try {
+                const ctx2 = sourceCanvas.getContext('2d');
+                const waCount = {{ wa_leads|default:0 }};
+                const emailCount = {{ email_leads|default:0 }};
+                
+                // Only create chart if we have data
+                if (waCount > 0 || emailCount > 0) {
+                    new Chart(ctx2, {
+                        type: 'doughnut',
+                        data: { 
+                            labels: ['WhatsApp', 'Email'], 
+                            datasets: [{ 
+                                data: [waCount, emailCount], 
+                                backgroundColor: ['#25D366', '#EA4335'], 
+                                borderWidth: 0 
+                            }] 
+                        },
+                        options: { 
+                            responsive: true, 
+                            maintainAspectRatio: false, 
+                            plugins: { legend: { display: false } }, 
+                            cutout: '70%' 
+                        }
+                    });
+                } else {
+                    console.log('Lead sources chart: No data available');
+                }
+            } catch (error) {
+                console.error('Error creating source chart:', error);
+            }
+        } else {
+            console.error('Source chart canvas not found');
+        }
+
+        // Revenue Trends Chart
+        const revenueCanvas = document.getElementById('revenueTrendChart');
+        if (revenueCanvas) {
+            try {
+                const ctx3 = revenueCanvas.getContext('2d');
+                {% if revenue_by_month %}
+                const revenueDataRaw = [{% for val in revenue_by_month %}{{ val|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}];
+                {% else %}
+                const revenueDataRaw = [];
+                {% endif %}
+                
+                // Ensure we have exactly 6 months of data
+                let revenueData = revenueDataRaw.length >= 6 ? revenueDataRaw.slice(0, 6) : revenueDataRaw;
+                while (revenueData.length < 6) {
+                    revenueData.push(0);
+                }
+                
+                const monthLabels = [];
+                const now = new Date();
+                for (let i = 5; i >= 0; i--) {
+                    const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                    monthLabels.push(monthDate.toLocaleDateString('en-US', { month: 'short' }));
+                }
+                
+                let gradRevenue = ctx3.createLinearGradient(0, 0, 0, 300);
+                gradRevenue.addColorStop(0, 'rgba(0, 210, 255, 0.8)');
+                gradRevenue.addColorStop(1, 'rgba(0, 210, 255, 0.1)');
+
+                new Chart(ctx3, {
+                    type: 'line',
+                    data: {
+                        labels: monthLabels,
+                        datasets: [{
+                            label: 'Revenue',
+                            data: revenueData,
+                            borderColor: '#00d2ff',
+                            backgroundColor: gradRevenue,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#00d2ff',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(0,0,0,0.8)',
+                                padding: 12,
+                                titleFont: { size: 14 },
+                                bodyFont: { size: 13 },
+                                callbacks: {
+                                    label: function(context) {
+                                        return '$' + context.parsed.y.toLocaleString();
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                ticks: { 
+                                    color: 'rgba(255,255,255,0.6)',
+                                    beginAtZero: true,
+                                    callback: function(value) {
+                                        return '$' + value.toLocaleString();
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: 'rgba(255,255,255,0.6)' }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error creating revenue trend chart:', error);
+                console.error('Error details:', error.message, error.stack);
+            }
+        } else {
+            console.error('Revenue trend chart canvas not found');
+        }
+    });
+
+    // Period Selector
+    document.querySelectorAll('.period-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const period = this.dataset.period;
+            // Here you could filter data based on period
+            console.log('Period selected:', period);
+        });
+    });
+
+    // Quick Search
+    const searchInput = document.getElementById('quick-search');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const query = this.value.trim();
+                if (query) {
+                    // Redirect to search results or filter
+                    window.location.href = `/dashboard/clients/?search=${encodeURIComponent(query)}`;
+                }
+            }
+        });
+    }
+
+    // Refresh Activity
+    function refreshActivity() {
+        const list = document.getElementById('activity-list');
+        list.style.opacity = '0.5';
+        setTimeout(() => {
+            location.reload();
+        }, 300);
+    }
+
+    // Mini Sparklines (simple line charts)
+    function createSparkline(containerId, data) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 80;
+        canvas.height = 20;
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        container.appendChild(canvas);
+        const max = Math.max(...data);
+        const min = Math.min(...data);
+        const range = max - min || 1;
+        
+        ctx.strokeStyle = '#00d2ff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        
+        data.forEach((value, index) => {
+            const x = (index / (data.length - 1)) * 80;
+            const y = 20 - ((value - min) / range) * 18;
+            if (index === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+    }
+
+    // Generate sample sparkline data
+    createSparkline('sparkline-products', [2, 4, 3, 5, 4, 6]);
+    createSparkline('sparkline-clients', [5, 8, 6, 10, 9, 12]);
+    createSparkline('sparkline-projects', [1, 2, 2, 3, 2, 4]);
+    createSparkline('sparkline-subscribers', [3, 5, 4, 7, 6, 9]);
+</script>
+
+<!-- STYLES -->
+<style>
+    .dash-header-grid { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; }
+    .compact-widget { padding: 15px 25px; display: flex; align-items: center; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); }
+    
+    /* Dashboard Profile Section */
+    .dashboard-profile-container {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 12px 20px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+    }
+    
+    .dashboard-profile-container:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(0, 240, 255, 0.3);
+        box-shadow: 0 4px 20px rgba(0, 240, 255, 0.1);
+    }
+    
+    .dashboard-profile-picture {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #00d2ff 0%, #7000ff 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid rgba(0, 240, 255, 0.3);
+        box-shadow: 0 4px 15px rgba(0, 240, 255, 0.2);
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+    }
+    
+    .dashboard-profile-picture:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(0, 240, 255, 0.4);
+        border-color: rgba(0, 240, 255, 0.5);
+    }
+    
+    .dashboard-profile-initials {
+        color: #fff;
+        font-size: 20px;
+        font-weight: 700;
+        font-family: 'Syne', sans-serif;
+        letter-spacing: 0.5px;
+    }
+    
+    .dashboard-profile-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .dashboard-profile-name {
+        color: #fff;
+        font-size: 16px;
+        font-weight: 600;
+        font-family: 'Outfit', sans-serif;
+        white-space: nowrap;
+    }
+    
+    .dashboard-profile-email {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 13px;
+        font-family: 'Outfit', sans-serif;
+        white-space: nowrap;
+    }
+    
+    .quick-actions { display: flex; gap: 15px; margin-bottom: 30px; overflow-x: auto; padding-bottom: 5px; }
+    .action-pill { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 50px; color: #fff; text-decoration: none; font-size: 13px; transition: 0.3s; white-space: nowrap; }
+    .action-pill:hover { background: rgba(0, 210, 255, 0.1); border-color: #00d2ff; color: #00d2ff; }
+
+    /* Updated Stats Grid for 3 Columns */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px; }
+    .stat-card { display: flex; align-items: center; gap: 20px; padding: 25px; position: relative; overflow: hidden; transition: 0.3s; }
+    .stat-card:hover { transform: translateY(-5px); border-color: rgba(255,255,255,0.2); }
+    
+    .stat-icon { width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .icon-blue { color: #00d2ff; background: rgba(0, 210, 255, 0.1); }
+    .icon-green { color: #2ecc71; background: rgba(46, 204, 113, 0.1); }
+    .icon-purple { color: #9b59b6; background: rgba(155, 89, 182, 0.1); }
+    .icon-orange { color: #f39c12; background: rgba(243, 156, 18, 0.1); }
+    .icon-teal { color: #1abc9c; background: rgba(26, 188, 156, 0.1); }
+    .icon-pink { color: #e91e63; background: rgba(233, 30, 99, 0.1); }
+    
+    .pulse-dot { position: absolute; top: 20px; right: 20px; width: 6px; height: 6px; background: #f39c12; border-radius: 50%; box-shadow: 0 0 10px #f39c12; animation: pulse 2s infinite; }
+
+    .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; }
+    .chart-container { padding: 25px; display: flex; flex-direction: column; }
+    .canvas-wrapper { height: 250px; width: 100%; }
+    .canvas-wrapper-doughnut { height: 200px; width: 100%; margin-top: 10px; }
+    
+    .chart-legend { display: flex; justify-content: center; gap: 20px; margin-top: 20px; font-size: 12px; color: #aaa; }
+    .dot-wa { width: 8px; height: 8px; background: #25D366; border-radius: 50%; }
+    .dot-email { width: 8px; height: 8px; background: #EA4335; border-radius: 50%; }
+
+    .table-row { border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.2s; }
+    .table-row:hover { background: rgba(255,255,255,0.02); }
+    .avatar-circle { width: 30px; height: 30px; background: #333; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+    .badge-wa { color: #2ecc71; background: rgba(46, 204, 113, 0.1); padding: 4px 10px; border-radius: 20px; font-size: 11px; display: inline-flex; align-items: center; gap: 5px; }
+    .badge-email { color: #e74c3c; background: rgba(231, 76, 60, 0.1); padding: 4px 10px; border-radius: 20px; font-size: 11px; display: inline-flex; align-items: center; gap: 5px; }
+
+    .fade-in-up { opacity: 0; animation: fadeInUp 0.6s ease forwards; transform: translateY(20px); }
+    @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+    @media (max-width: 900px) {
+        .dash-header-grid { flex-direction: column; align-items: flex-start; gap: 20px; }
+        .charts-grid { grid-template-columns: 1fr; }
+        .compact-widget { width: 100%; justify-content: space-between; }
+        .dashboard-row { grid-template-columns: 1fr; }
+        .dashboard-controls { flex-direction: column; }
+        .goals-grid { grid-template-columns: 1fr; }
+        .dashboard-profile-container {
+            width: 100%;
+            justify-content: flex-start;
+        }
+        .dashboard-profile-name,
+        .dashboard-profile-email {
+            white-space: normal;
+            word-break: break-word;
+        }
+    }
+
+    /* ============================================
+       NEW ENHANCEMENT STYLES
+       ============================================ */
+
+    /* Dashboard Controls */
+    .dashboard-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    .period-selector {
+        display: flex;
+        gap: 10px;
+        background: rgba(255,255,255,0.05);
+        padding: 5px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .period-btn {
+        padding: 8px 16px;
+        background: transparent;
+        border: none;
+        border-radius: 8px;
+        color: rgba(255,255,255,0.6);
+        font-size: 13px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    .period-btn.active {
+        background: rgba(0, 210, 255, 0.2);
+        color: #00d2ff;
+        border: 1px solid rgba(0, 210, 255, 0.3);
+    }
+    .search-box-wrapper {
+        position: relative;
+        flex: 1;
+        max-width: 300px;
+    }
+    .search-box-wrapper i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255,255,255,0.4);
+    }
+    .quick-search-input {
+        width: 100%;
+        padding: 10px 12px 10px 40px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 8px;
+        color: #fff;
+        font-size: 13px;
+        transition: 0.3s;
+    }
+    .quick-search-input:focus {
+        outline: none;
+        border-color: #00d2ff;
+        background: rgba(0, 210, 255, 0.05);
+    }
+
+    /* Enhanced Stat Cards */
+    .enhanced-stat {
+        position: relative;
+    }
+    .stat-content {
+        flex: 1;
+    }
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 8px;
+    }
+    .stat-header h3 {
+        margin: 0;
+        font-size: 28px;
+    }
+    .trend-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 4px 8px;
+        border-radius: 6px;
+    }
+    .trend-up {
+        color: #2ecc71;
+        background: rgba(46, 204, 113, 0.1);
+    }
+    .trend-down {
+        color: #e74c3c;
+        background: rgba(231, 76, 60, 0.1);
+    }
+    .trend-neutral {
+        color: rgba(255,255,255,0.5);
+        background: rgba(255,255,255,0.05);
+    }
+    .mini-sparkline {
+        margin-top: 10px;
+        height: 20px;
+        opacity: 0.7;
+    }
+
+    /* Goals Grid */
+    .goals-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    .goal-card {
+        padding: 25px;
+    }
+    .goal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .goal-header h4 {
+        margin: 0;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .goal-target {
+        font-size: 12px;
+        color: rgba(255,255,255,0.6);
+    }
+    .goal-progress {
+        margin-bottom: 10px;
+    }
+    .progress-bar {
+        width: 100%;
+        height: 12px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 10px;
+    }
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #00d2ff, #7000ff);
+        border-radius: 10px;
+        transition: width 0.5s ease;
+        box-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
+    }
+    .goal-stats {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .goal-current {
+        font-size: 18px;
+        font-weight: 700;
+        color: #fff;
+        font-family: 'Syne', sans-serif;
+    }
+    .goal-percentage {
+        font-size: 14px;
+        color: rgba(255,255,255,0.6);
+    }
+    .goal-achieved {
+        margin-top: 15px;
+        padding: 10px;
+        background: rgba(46, 204, 113, 0.1);
+        border: 1px solid rgba(46, 204, 113, 0.3);
+        border-radius: 8px;
+        color: #2ecc71;
+        text-align: center;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    /* Alerts Center */
+    .alerts-center {
+        margin-bottom: 25px;
+        padding: 20px;
+    }
+    .alerts-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    .alerts-header h4 {
+        margin: 0;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .alert-count {
+        background: rgba(255, 71, 87, 0.2);
+        color: #ff4757;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .alerts-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .alert-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        transition: 0.3s;
+    }
+    .alert-item:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(255,255,255,0.2);
+    }
+    .alert-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+    .alert-warning .alert-icon {
+        background: rgba(243, 156, 18, 0.2);
+        border: 1px solid rgba(243, 156, 18, 0.3);
+        color: #f39c12;
+    }
+    .alert-info .alert-icon {
+        background: rgba(52, 152, 219, 0.2);
+        border: 1px solid rgba(52, 152, 219, 0.3);
+        color: #3498db;
+    }
+    .alert-content {
+        flex: 1;
+    }
+    .alert-content strong {
+        display: block;
+        color: #fff;
+        margin-bottom: 4px;
+        font-size: 14px;
+    }
+    .alert-content p {
+        margin: 0;
+        color: rgba(255,255,255,0.6);
+        font-size: 12px;
+    }
+    .alert-action {
+        color: #00d2ff;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: gap 0.3s;
+    }
+    .alert-action:hover {
+        gap: 10px;
+    }
+
+    /* Revenue Chart Enhanced */
+    .chart-large {
+        grid-column: span 2;
+    }
+    .revenue-summary {
+        display: flex;
+        gap: 30px;
+    }
+    .revenue-item {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    .revenue-label {
+        font-size: 11px;
+        color: rgba(255,255,255,0.5);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .revenue-value {
+        font-size: 20px;
+        font-weight: 700;
+        color: #fff;
+        font-family: 'Syne', sans-serif;
+    }
+
+    /* Conversion Funnel */
+    .funnel-container {
+        padding: 20px 0;
+    }
+    .funnel-stage {
+        margin-bottom: 15px;
+    }
+    .funnel-bar {
+        position: relative;
+        padding: 12px 20px;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #fff;
+        font-weight: 600;
+        transition: all 0.3s;
+        min-height: 45px;
+    }
+    .funnel-bar:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    .funnel-label {
+        font-size: 13px;
+    }
+    .funnel-count {
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    /* Activity Feed */
+    .dashboard-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+    .activity-feed-card {
+        padding: 20px;
+    }
+    .activity-feed-card .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .refresh-btn {
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.1);
+        color: rgba(255,255,255,0.6);
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: 0.3s;
+        font-size: 12px;
+    }
+    .refresh-btn:hover {
+        border-color: #00d2ff;
+        color: #00d2ff;
+    }
+    .activity-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    .activity-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 12px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 10px;
+        transition: 0.3s;
+    }
+    .activity-item:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(255,255,255,0.1);
+    }
+    .activity-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+    .activity-content {
+        flex: 1;
+    }
+    .activity-message {
+        margin: 0 0 4px 0;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 500;
+    }
+    .activity-time {
+        font-size: 11px;
+        color: rgba(255,255,255,0.5);
+    }
+    .activity-link {
+        color: rgba(255,255,255,0.4);
+        transition: 0.3s;
+    }
+    .activity-item:hover .activity-link {
+        color: #00d2ff;
+    }
+    .empty-activity {
+        text-align: center;
+        color: rgba(255,255,255,0.4);
+        padding: 40px;
+        font-size: 14px;
+    }
+
+    /* Performance Scorecard */
+    .scorecard-card {
+        padding: 25px;
+    }
+    .scorecard-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+    }
+    .health-score {
+        position: relative;
+    }
+    .score-circle {
+        position: relative;
+        width: 120px;
+        height: 120px;
+    }
+    .score-ring {
+        transform: rotate(-90deg);
+    }
+    .score-ring-bg {
+        fill: none;
+        stroke: rgba(255,255,255,0.1);
+        stroke-width: 8;
+    }
+    .score-ring-fill {
+        fill: none;
+        stroke: #00d2ff;
+        stroke-width: 8;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 1s ease;
+    }
+    .score-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+    .score-number {
+        display: block;
+        font-size: 32px;
+        font-weight: 700;
+        color: #fff;
+        font-family: 'Syne', sans-serif;
+    }
+    .score-label {
+        display: block;
+        font-size: 12px;
+        color: rgba(255,255,255,0.6);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .score-metrics {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    .score-metric {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .metric-bar {
+        flex: 1;
+        height: 8px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .metric-fill {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 1s ease;
+    }
+    .score-metric span {
+        font-size: 12px;
+        color: rgba(255,255,255,0.6);
+        min-width: 120px;
+    }
+    .score-metric strong {
+        font-size: 14px;
+        color: #fff;
+        min-width: 40px;
+        text-align: right;
+    }
+</style>
+{% endblock %}

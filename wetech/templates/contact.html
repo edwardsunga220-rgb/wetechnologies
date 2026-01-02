@@ -1,0 +1,962 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- 1. Hero -->
+<section class="page-hero">
+    <div class="hero-text-center">
+        <span class="hero-badge"><i class="bi bi-chat-left-text-fill"></i> Get in Touch</span>
+        <h1>Let's Build <span class="text-gradient">Something Big</span></h1>
+        <p>Have a project in mind? We'd love to hear about it.</p>
+    </div>
+</section>
+
+<!-- 2. Form & Info Split -->
+<section class="contact-split-section">
+    <div class="contact-container glass-card">
+        <div class="contact-grid-layout">
+            
+            <!-- Form Area -->
+            <div class="contact-form-area">
+                <h3><i class="bi bi-send"></i> Start the conversation</h3>
+                <p class="lead-muted">Pick how you want to reach us—quick ping, detailed brief, call, or video.</p>
+                
+                <!-- SUCCESS MESSAGE -->
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="success-banner">
+                        <i class="bi bi-check-circle-fill"></i> {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Channel Selector -->
+                <div class="channel-toggle">
+                    <button type="button" class="channel-btn active" data-channel="quick"><i class="bi bi-lightning-charge-fill"></i> Quick</button>
+                    <button type="button" class="channel-btn" data-channel="detailed"><i class="bi bi-clipboard-data"></i> Detailed Brief</button>
+                    <button type="button" class="channel-btn" data-channel="call"><i class="bi bi-calendar-week"></i> Schedule Call</button>
+                    <button type="button" class="channel-btn" data-channel="video"><i class="bi bi-camera-video"></i> Video Message</button>
+                </div>
+                
+                <!-- Smart Form -->
+                <form class="main-form" method="POST" id="contact-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="channel" id="channel-input" value="quick">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <input type="text" name="name" placeholder="Name" required class="cyber-input">
+                        </div>
+                        <div class="form-group">
+                            <input type="email" name="email" placeholder="Email" required class="cyber-input">
+                        </div>
+                    </div>
+
+                    <!-- Quick channel -->
+                    <div class="channel-pane" data-channel="quick">
+                        <div class="form-group">
+                            <input type="text" name="subject" placeholder="Project or idea in one line" required class="cyber-input">
+                        </div><br>
+                        <div class="form-group">
+                            <textarea name="message" placeholder="Tell us briefly what you need..." rows="4" required class="cyber-input"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Detailed channel -->
+                    <div class="channel-pane hidden" data-channel="detailed">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <input type="text" name="company" placeholder="Company / Project Name" class="cyber-input">
+                            </div>
+                            <div class="form-group">
+                                <select name="industry" class="cyber-input select-input" id="industry-select">
+                                    <option value="" disabled selected>Industry</option>
+                                    <option value="fintech">FinTech</option>
+                                    <option value="healthcare">Healthcare</option>
+                                    <option value="ecommerce">E-commerce</option>
+                                    <option value="saas">SaaS</option>
+                                    <option value="education">Education</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <select name="project_type" class="cyber-input select-input" id="project-type-select">
+                                    <option value="" disabled selected>Project Type</option>
+                                    <option value="web_app">Web App / Platform</option>
+                                    <option value="mobile_app">Mobile App</option>
+                                    <option value="backend_api">Backend / API</option>
+                                    <option value="prototype">Prototype / MVP</option>
+                                    <option value="maintenance">Maintenance / Scale</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <select name="budget" class="cyber-input select-input" id="budget-select">
+                                    <option value="" disabled selected>Budget range</option>
+                                    <option value="10k-25k">$10k - $25k</option>
+                                    <option value="25k-50k">$25k - $50k</option>
+                                    <option value="50k-100k">$50k - $100k</option>
+                                    <option value="100k+">$100k+</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <select name="timeline" class="cyber-input select-input">
+                                <option value="" disabled selected>Timeline target</option>
+                                <option value="asap">ASAP / Under 4 weeks</option>
+                                <option value="1-3m">1 - 3 months</option>
+                                <option value="3-6m">3 - 6 months</option>
+                                <option value="6m+">6+ months</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <textarea name="message" placeholder="Goals, users, success metrics, constraints..." rows="5" class="cyber-input"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Call channel -->
+                    <div class="channel-pane hidden" data-channel="call">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <input type="date" name="call_date" class="cyber-input">
+                            </div>
+                            <div class="form-group">
+                                <input type="time" name="call_time" class="cyber-input">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <select name="timezone" class="cyber-input select-input">
+                                <option value="" disabled selected>Your timezone</option>
+                                <option value="GMT">GMT</option>
+                                <option value="EAT">EAT (UTC+3)</option>
+                                <option value="CET">CET</option>
+                                <option value="EST">EST</option>
+                                <option value="PST">PST</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <textarea name="message" placeholder="What would you like to cover in the call?" rows="4" class="cyber-input"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Video channel -->
+                    <div class="channel-pane hidden" data-channel="video">
+                        <div class="form-group">
+                            <input type="url" name="video_link" placeholder="Link to your video (Loom/Drive/etc.)" class="cyber-input">
+                        </div>
+                        <div class="form-group">
+                            <textarea name="message" placeholder="Context for your video (optional)" rows="4" class="cyber-input"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Visual scope builder -->
+                    <div class="scope-builder glass-subcard">
+                        <div class="scope-header">
+                            <div>
+                                <h4><i class="bi bi-ui-checks-grid"></i> Visual Project Scope</h4>
+                                <p>Select features and we’ll auto-calc complexity & estimate.</p>
+                            </div>
+                            <div class="complexity">
+                                <label for="complexity-slider">Complexity</label>
+                                <input type="range" id="complexity-slider" min="1" max="5" step="1" value="2" aria-label="Project complexity level">
+                                <span id="complexity-label">Medium</span>
+                            </div>
+                        </div>
+                        <div class="feature-chips" id="feature-chips">
+                            <button type="button" class="chip" data-weight="2">Auth</button>
+                            <button type="button" class="chip" data-weight="3">Payments</button>
+                            <button type="button" class="chip" data-weight="2">Chat</button>
+                            <button type="button" class="chip" data-weight="2">Notifications</button>
+                            <button type="button" class="chip" data-weight="3">Admin Dashboard</button>
+                            <button type="button" class="chip" data-weight="3">Analytics</button>
+                            <button type="button" class="chip" data-weight="4">Multi-tenant</button>
+                            <button type="button" class="chip" data-weight="1">CMS</button>
+                            <button type="button" class="chip" data-weight="2">Offline Mode</button>
+                            <button type="button" class="chip" data-weight="3">AI/ML</button>
+                        </div>
+                        <div class="tech-select">
+                            <label>Preferred stack (optional)</label>
+                            <div class="tech-chips">
+                                <button type="button" class="chip-alt" data-tech="Python">Python</button>
+                                <button type="button" class="chip-alt" data-tech="Django">Django</button>
+                                <button type="button" class="chip-alt" data-tech="Flutter">Flutter</button>
+                                <button type="button" class="chip-alt" data-tech="React">React</button>
+                                <button type="button" class="chip-alt" data-tech="Node">Node.js</button>
+                            </div>
+                        </div>
+                        <div class="estimate-grid">
+                            <div class="estimate-card">
+                                <span class="label">Est. complexity</span>
+                                <div class="value" id="complexity-score">Medium</div>
+                            </div>
+                            <div class="estimate-card">
+                                <span class="label">Feature count</span>
+                                <div class="value" id="feature-count">0</div>
+                            </div>
+                            <div class="estimate-card">
+                                <span class="label">Rough effort</span>
+                                <div class="value" id="effort-weeks">~0-0 wks</div>
+                            </div>
+                            <div class="estimate-card">
+                                <span class="label">Budget band</span>
+                                <div class="value" id="budget-band">$0k - $0k</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary submit-btn">
+                        Send <span id="submit-channel-label">Quick</span> Request <i class="bi bi-arrow-right"></i>
+                    </button>
+
+                    <!-- Submission status -->
+                    <div class="submission-steps">
+                        <div class="step"><span class="dot active"></span><p>Review</p></div>
+                        <div class="step"><span class="dot"></span><p>Technical check</p></div>
+                        <div class="step"><span class="dot"></span><p>Reply</p></div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Info Area -->
+            <div class="contact-info-area">
+                <h3>Contact Info</h3><br>
+                
+                <div class="info-item">
+                    <span class="info-icon"><i class="bi bi-geo-alt-fill"></i></span>
+                    <div>
+                        <strong>HQ</strong>
+                        <p>15th Floor, Innovation Tower<br>Dar es salaam, Tanzania</p>
+                    </div>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-icon"><i class="bi bi-envelope-at-fill"></i></span>
+                    <div>
+                        <strong>Email</strong>
+                        <p>support@wetech.com</p>
+                    </div>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-icon"><i class="bi bi-telephone-fill"></i></span>
+                    <div>
+                        <strong>Phone</strong>
+                        <p>+254 777 749 824</p>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <span class="info-icon"><i class="bi bi-clock-fill"></i></span>
+                    <div>
+                        <strong>Working Hours</strong>
+                        <p>Mon - Fri: 8am - 6pm</p>
+                    </div>
+                </div>
+
+                <div class="availability-card glass-subcard">
+                    <div class="availability-header">
+                        <div>
+                            <p class="eyebrow">Live availability</p>
+                            <h4 id="availability-status">We reply in ~2h</h4>
+                            <p id="availability-timezone">Local time: —</p>
+                        </div>
+                        <span class="status-dot online"></span>
+                    </div>
+                    <div class="availability-meta">
+                        <div><i class="bi bi-person-check"></i> Product manager available today</div>
+                        <div><i class="bi bi-headset"></i> 24/7 support hotline</div>
+                        <div><i class="bi bi-activity"></i> Avg. response this week: 1h 45m</div>
+                    </div>
+                    <button class="btn-secondary btn-sm" type="button" onclick="document.querySelector('[data-channel=call]').scrollIntoView({behavior:'smooth'})">
+                        Book a 15-min intro
+                    </button>
+                </div>
+
+                <div class="social-proof glass-subcard">
+                    <div class="social-header">
+                        <p class="eyebrow">Live activity</p>
+                        <h4>Teams reaching out now</h4>
+                    </div>
+                    <ul id="live-feed" class="live-feed">
+                        <li>FinTech startup booked a strategy call.</li>
+                        <li>E-commerce founder requested MVP estimate.</li>
+                        <li>Healthcare team shared a video brief.</li>
+                        <li>SaaS company asked for API hardening.</li>
+                    </ul>
+                    <div class="mini-metrics">
+                        <div><strong>47</strong><span>Contacts this month</span></div>
+                        <div><strong>15</strong><span>Industries served</span></div>
+                        <div><strong>92%</strong><span>Reply < 2h</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 2.5. Instant Portfolio Matcher -->
+<section class="portfolio-matcher-section section-spacing" id="portfolio-matcher" style="display: none;">
+    <div class="section-header" style="text-align: center; margin-bottom: 40px;">
+        <h2 class="section-title">We Built Something <span class="text-gradient">Similar</span></h2>
+        <p style="color: rgba(255,255,255,0.6); margin-top: 10px;">Here are some relevant projects that match what you're looking for</p>
+    </div>
+    <div class="portfolio-matcher-grid" id="matcher-grid">
+        {% if projects %}
+            {% for project in projects %}
+            <div class="matcher-project-card glass-card" 
+                 data-category="{{ project.category }}"
+                 data-title="{{ project.title|lower }}"
+                 data-description="{{ project.description|lower }}"
+                 data-client="{{ project.client_name|lower }}">
+                <div class="matcher-image">
+                    <img src="{{ project.image.url }}" alt="{{ project.title }}">
+                    <div class="matcher-badge">
+                        {% if project.category == 'mobile' %}<i class="bi bi-phone"></i>
+                        {% elif project.category == 'web' %}<i class="bi bi-laptop"></i>
+                        {% else %}<i class="bi bi-server"></i>{% endif %}
+                        {{ project.get_category_display }}
+                    </div>
+                </div>
+                <div class="matcher-content">
+                    <h4>{{ project.title }}</h4>
+                    <p class="matcher-client">{{ project.client_name }}</p>
+                    <p class="matcher-desc">{{ project.description|truncatewords:20 }}</p>
+                    <a href="{% url 'project_detail' project.id %}" class="matcher-link">
+                        View Case Study <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</section>
+
+<!-- 3. Visual / Team Section (Preserved) -->
+<section class="team-visual-section">
+    <div class="visual-grid">
+        <!-- Image Side -->
+        <div class="visual-image-wrapper">
+            <div class="image-card glass-card">
+                <img src="{% static 'images/img/contact.jpg' %}" alt="WeTech Support Team">
+                <div class="image-overlay">
+                    <span class="badge"><i class="bi bi-headset"></i> 24/7 Support</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Text Side -->
+        <div class="visual-content">
+            <h2>Real People. <br><span class="text-gradient">Real Solutions.</span></h2>
+            <p>
+                Technology is built by code, but business is built on relationships. 
+                When you contact WeTech, you aren't talking to a chatbot. 
+            </p>
+            <p>
+                You are connecting with a team of <strong>Senior Engineers</strong> and <strong>Product Architects</strong> dedicated to understanding your specific market challenges.
+            </p>
+            
+            <div class="features-grid">
+                <div class="feat-item">
+                    <div class="feat-icon-wrapper">
+                        <i class="bi bi-lightning-charge-fill"></i>
+                    </div>
+                    <div class="feat-content">
+                        <strong>Fast Response</strong>
+                        <p>Get replies within 24 hours, guaranteed.</p>
+                    </div>
+                </div>
+                <div class="feat-item">
+                    <div class="feat-icon-wrapper">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <div class="feat-content">
+                        <strong>NDA Protected</strong>
+                        <p>Your ideas are safe with us.</p>
+                    </div>
+                </div>
+                <div class="feat-item">
+                    <div class="feat-icon-wrapper">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <div class="feat-content">
+                        <strong>Expert Consultation</strong>
+                        <p>Free technical consultation on your project.</p>
+                    </div>
+                </div>
+                <div class="feat-item">
+                    <div class="feat-icon-wrapper">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <div class="feat-content">
+                        <strong>Dedicated Team</strong>
+                        <p>Assigned project manager for your success.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="stat-number">99.9%</div>
+                    <div class="stat-label">Uptime SLA</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Support Available</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">150+</div>
+                    <div class="stat-label">Projects Delivered</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 4. Map Section (Preserved) -->
+<section class="map-section">
+    <div class="map-wrapper glass-card">
+        <iframe 
+            title="WeTech Office Location Map"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15955.200876226343!2d36.81180907932626!3d-1.292065922312211!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f10d22f28f0c1%3A0x26649f12330a213e!2sUpper%20Hill%2C%20Nairobi%2C%20Kenya!5e0!3m2!1sen!2stz!4v1700000000000!5m2!1sen!2stz" 
+            width="100%" 
+            height="450" 
+            style="border:0;" 
+            allowfullscreen="" 
+            loading="lazy" 
+            referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+    </div>
+</section>
+
+<!-- Internal Styles -->
+<style>
+    /* Ensures Inputs look consistent with dashboard/other forms */
+    .cyber-input {
+        width: 100%;
+        padding: 15px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 8px;
+        color: white;
+        transition: 0.3s;
+        font-family: 'Outfit', sans-serif;
+    }
+    .cyber-input:focus {
+        outline: none;
+        border-color: #00d2ff;
+        background: rgba(0, 210, 255, 0.05);
+    }
+    
+    /* Layout Styles from Original */
+    .team-visual-section { max-width: 1200px; margin: 35px auto; padding: 0 20px; }
+    .visual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: stretch; }
+    .visual-image-wrapper { display: flex; align-items: stretch; }
+    .visual-image-wrapper .image-card { 
+        padding: 10px; 
+        border-radius: 20px; 
+        position: relative; 
+        transform: rotate(-2deg); 
+        transition: 0.3s;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .visual-image-wrapper .image-card img {
+        flex: 1;
+        object-fit: cover;
+        height: 100%;
+        min-height: 500px;
+    }
+    .visual-image-wrapper .image-card:hover { transform: rotate(0deg) scale(1.02); border-color: var(--primary); }
+
+    /* Responsive for Contact Page */
+    @media (max-width: 991px) {
+        .contact-grid-layout {
+            grid-template-columns: 1fr !important;
+            gap: 40px;
+        }
+        .visual-grid {
+            grid-template-columns: 1fr;
+            gap: 40px;
+        }
+        .team-visual-section {
+            margin: 30px auto;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .contact-grid-layout {
+            gap: 30px;
+        }
+        .visual-grid {
+            gap: 30px;
+        }
+        .visual-content {
+            min-height: auto;
+        }
+        .visual-content h2 {
+            font-size: 32px;
+        }
+        .features-grid {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        .stats-row {
+            flex-direction: column;
+            gap: 15px;
+        }
+        .visual-image-wrapper .image-card img {
+            min-height: 400px;
+        }
+        .map-section iframe {
+            height: 300px;
+        }
+    }
+
+    @media (max-width: 575px) {
+        .visual-content h2 {
+            font-size: 28px;
+        }
+        .visual-content p {
+            font-size: 15px;
+        }
+        .feat-item {
+            padding: 15px;
+        }
+        .feat-icon-wrapper {
+            width: 40px;
+            height: 40px;
+        }
+        .feat-icon-wrapper i {
+            font-size: 20px;
+        }
+        .stat-number {
+            font-size: 28px;
+        }
+        .visual-image-wrapper .image-card img {
+            min-height: 350px;
+        }
+        .map-section iframe {
+            height: 250px;
+        }
+    }
+    .visual-image-wrapper img { width: 100%; border-radius: 12px; display: block; filter: grayscale(20%); transition: 0.3s; }
+    .visual-image-wrapper:hover img { filter: grayscale(0%); }
+    .image-overlay { position: absolute; bottom: 30px; right: -20px; }
+    .image-overlay .badge { background: var(--dark-1); border: 1px solid var(--primary); padding: 10px 20px; border-radius: 50px; color: var(--primary); font-weight: 700; font-family: 'Syne'; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .visual-content { 
+        display: flex; 
+        flex-direction: column; 
+        justify-content: center; 
+        height: 100%; 
+        min-height: 500px;
+    }
+    .visual-content h2 { font-family: 'Syne'; font-size: 42px; color: #fff; margin-bottom: 25px; line-height: 1.2; }
+    .visual-content p { font-size: 16px; color: rgba(255,255,255,0.7); line-height: 1.8; margin-bottom: 25px; }
+    
+    .features-grid { 
+        display: grid; 
+        grid-template-columns: 1fr 1fr; 
+        gap: 20px; 
+        margin-top: 30px; 
+        margin-bottom: 35px;
+    }
+    .feat-item { 
+        display: flex; 
+        gap: 15px; 
+        padding: 20px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 12px;
+        transition: 0.3s;
+    }
+    .feat-item:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: var(--primary);
+        transform: translateY(-2px);
+    }
+    .feat-icon-wrapper {
+        width: 48px;
+        height: 48px;
+        background: rgba(0, 240, 255, 0.1);
+        border: 1px solid rgba(0, 240, 255, 0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .feat-icon-wrapper i { 
+        font-size: 24px; 
+        color: var(--primary);
+    }
+    .feat-content strong { 
+        display: block;
+        font-family: 'Syne'; 
+        font-weight: 600; 
+        color: #fff; 
+        margin-bottom: 5px;
+        font-size: 15px;
+    }
+    .feat-content p { 
+        font-size: 13px; 
+        color: rgba(255,255,255,0.6); 
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .stats-row {
+        display: flex;
+        gap: 20px;
+        margin-top: auto;
+        padding-top: 30px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .stat-box {
+        flex: 1;
+        text-align: center;
+        padding: 20px;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 12px;
+    }
+    .stat-number {
+        font-family: 'Syne';
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 8px;
+        line-height: 1;
+    }
+    .stat-label {
+        font-size: 12px;
+        color: rgba(255,255,255,0.6);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    @media (max-width: 992px) {
+        .visual-grid { grid-template-columns: 1fr; }
+        .visual-image-wrapper .image-card { transform: rotate(0); }
+        .image-overlay { right: 10px; }
+    }
+
+/* New Contact Enhancements */
+.lead-muted { color: rgba(255,255,255,0.65); margin: 6px 0 16px; }
+.success-banner { background: rgba(0, 210, 255, 0.1); border: 1px solid #00d2ff; color: #00d2ff; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
+.channel-toggle { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 16px 0 18px; }
+.channel-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.25s; width: 100%; justify-content: center; }
+.channel-btn.active { border-color: var(--primary); color: var(--primary); box-shadow: 0 0 15px rgba(0,240,255,0.2); background: rgba(0,240,255,0.08); }
+.channel-pane.hidden { display: none; }
+.select-input { appearance: none; background-image: linear-gradient(45deg, transparent 50%, rgba(255,255,255,0.4) 50%), linear-gradient(135deg, rgba(255,255,255,0.4) 50%, transparent 50%); background-position: calc(100% - 15px) 50%, calc(100% - 10px) 50%; background-size: 8px 8px, 8px 8px; background-repeat: no-repeat; }
+
+.scope-builder { margin-top: 24px; border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 18px; background: rgba(255,255,255,0.02); }
+.scope-header { display: flex; justify-content: space-between; gap: 16px; align-items: center; flex-wrap: wrap; }
+.scope-header h4 { margin: 0 0 6px; font-family: 'Syne'; }
+.complexity { display: flex; align-items: center; gap: 10px; }
+.complexity input[type=range] { accent-color: var(--primary); cursor: pointer; }
+.feature-chips, .tech-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.chip, .chip-alt { border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #fff; border-radius: 12px; padding: 8px 12px; cursor: pointer; transition: 0.2s; }
+.chip:hover, .chip-alt:hover { border-color: var(--primary); }
+.chip.active, .chip-alt.active { background: rgba(0,240,255,0.12); border-color: var(--primary); color: var(--primary); }
+.tech-select { margin-top: 14px; }
+.estimate-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 16px; }
+.estimate-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px 14px; }
+.estimate-card .label { color: rgba(255,255,255,0.6); font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; }
+.estimate-card .value { font-family: 'Syne'; font-size: 18px; margin-top: 6px; color: #fff; }
+.submit-btn { width: 100%; margin-top: 16px; }
+
+.submission-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+.submission-steps .step { text-align: center; color: rgba(255,255,255,0.6); font-size: 12px; }
+.submission-steps .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-bottom: 6px; border: 2px solid rgba(255,255,255,0.2); }
+.submission-steps .dot.active { border-color: var(--primary); background: var(--primary); box-shadow: 0 0 10px rgba(0,240,255,0.5); }
+
+.availability-card { margin-top: 20px; }
+.glass-subcard { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 14px; }
+.availability-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.eyebrow { text-transform: uppercase; letter-spacing: 0.6px; color: rgba(255,255,255,0.6); font-size: 11px; margin: 0 0 4px; }
+.status-dot { width: 12px; height: 12px; border-radius: 50%; }
+.status-dot.online { background: #24e06f; box-shadow: 0 0 10px rgba(36,224,111,0.6); }
+.availability-meta { display: grid; gap: 6px; margin: 10px 0 14px; color: rgba(255,255,255,0.75); font-size: 13px; }
+.availability-meta i { color: var(--primary); margin-right: 6px; }
+.btn-sm { padding: 10px 14px; font-size: 13px; }
+
+.social-proof { margin-top: 16px; }
+.social-header h4 { margin: 4px 0 6px; }
+.live-feed { list-style: none; padding: 0; margin: 10px 0; display: grid; gap: 6px; color: rgba(255,255,255,0.75); }
+.live-feed li { padding: 8px 10px; background: rgba(255,255,255,0.03); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+.mini-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; text-align: center; }
+.mini-metrics strong { display: block; font-family: 'Syne'; color: #fff; font-size: 18px; }
+.mini-metrics span { color: rgba(255,255,255,0.6); font-size: 12px; }
+
+/* Portfolio Matcher Section */
+.portfolio-matcher-section {
+    padding: 60px 0;
+}
+.portfolio-matcher-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+.matcher-project-card {
+    border-radius: 16px;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+}
+.matcher-project-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+.matcher-image {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+}
+.matcher-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s;
+}
+.matcher-project-card:hover .matcher-image img {
+    transform: scale(1.1);
+}
+.matcher-badge {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(0, 240, 255, 0.9);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    border-radius: 20px;
+    color: #0a0a12;
+    font-size: 12px;
+    font-weight: 600;
+}
+.matcher-content {
+    padding: 24px;
+}
+.matcher-content h4 {
+    font-family: 'Syne';
+    font-size: 20px;
+    color: #fff;
+    margin: 0 0 8px 0;
+}
+.matcher-client {
+    color: rgba(255,255,255,0.7);
+    font-size: 14px;
+    margin: 0 0 12px 0;
+}
+.matcher-desc {
+    color: rgba(255,255,255,0.6);
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0 0 16px 0;
+}
+.matcher-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 14px;
+    transition: gap 0.3s;
+}
+.matcher-link:hover {
+    gap: 12px;
+}
+
+@media (max-width: 720px) {
+    .channel-toggle { grid-template-columns: repeat(2, 1fr); }
+    .scope-header { align-items: flex-start; }
+    .mini-metrics { grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Channel switching
+    const channelButtons = document.querySelectorAll('.channel-btn');
+    const panes = document.querySelectorAll('.channel-pane');
+    const channelInput = document.getElementById('channel-input');
+    const submitLabel = document.getElementById('submit-channel-label');
+    channelButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            channelButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const channel = btn.dataset.channel;
+            channelInput.value = channel;
+            submitLabel.textContent = btn.textContent.trim();
+            panes.forEach(p => p.classList.toggle('hidden', p.dataset.channel !== channel));
+        });
+    });
+
+    // Scope builder interactions
+    const chips = document.querySelectorAll('.chip');
+    const techChips = document.querySelectorAll('.chip-alt');
+    const complexitySlider = document.getElementById('complexity-slider');
+    const complexityLabel = document.getElementById('complexity-label');
+    const complexityScore = document.getElementById('complexity-score');
+    const featureCount = document.getElementById('feature-count');
+    const effortWeeks = document.getElementById('effort-weeks');
+    const budgetBand = document.getElementById('budget-band');
+
+    const complexityMap = {1:'Very Low',2:'Low',3:'Medium',4:'High',5:'Very High'};
+
+    const calc = () => {
+        const selectedFeatures = Array.from(chips).filter(c => c.classList.contains('active'));
+        const featureWeights = selectedFeatures.reduce((sum, c) => sum + Number(c.dataset.weight || 1), 0);
+        const complexity = Number(complexitySlider.value);
+        const effort = Math.round((featureWeights * 1.2) + (complexity * 1.5));
+        const minBudget = Math.max(5, Math.round((featureWeights + complexity) * 2));
+        const maxBudget = minBudget + Math.max(10, Math.round(complexity * 5));
+
+        featureCount.textContent = selectedFeatures.length;
+        complexityLabel.textContent = complexityMap[complexity];
+        complexityScore.textContent = complexityMap[complexity];
+        effortWeeks.textContent = `~${effort}-${effort + 3} wks`;
+        budgetBand.textContent = `$${minBudget}k - $${maxBudget}k`;
+    };
+
+    chips.forEach(chip => chip.addEventListener('click', () => { chip.classList.toggle('active'); calc(); }));
+    techChips.forEach(chip => chip.addEventListener('click', () => chip.classList.toggle('active')));
+    complexitySlider.addEventListener('input', () => { calc(); });
+    calc();
+
+    // Portfolio Matcher - Show relevant projects based on form input
+    const portfolioMatcher = document.getElementById('portfolio-matcher');
+    const projectCards = document.querySelectorAll('.matcher-project-card');
+    
+    function matchProjects() {
+        const searchTexts = [];
+        
+        // Collect text from all visible inputs
+        const visibleInputs = document.querySelectorAll('.channel-pane:not(.hidden) input, .channel-pane:not(.hidden) textarea, .channel-pane:not(.hidden) select');
+        visibleInputs.forEach(input => {
+            if (input.value && input.value.trim()) {
+                searchTexts.push(input.value.toLowerCase());
+            }
+        });
+        
+        // Also check industry and project type selects even if in hidden panes
+        const industrySelect = document.getElementById('industry-select');
+        const projectTypeSelect = document.getElementById('project-type-select');
+        if (industrySelect && industrySelect.value) {
+            searchTexts.push(industrySelect.value.toLowerCase());
+        }
+        if (projectTypeSelect && projectTypeSelect.value) {
+            const typeMap = {
+                'web_app': 'web',
+                'mobile_app': 'mobile',
+                'backend_api': 'backend'
+            };
+            if (typeMap[projectTypeSelect.value]) {
+                searchTexts.push(typeMap[projectTypeSelect.value]);
+            }
+            searchTexts.push(projectTypeSelect.value.toLowerCase());
+        }
+        
+        // Check selected tech chips
+        const selectedTech = Array.from(techChips).filter(c => c.classList.contains('active')).map(c => c.dataset.tech.toLowerCase());
+        searchTexts.push(...selectedTech);
+        
+        if (searchTexts.length < 2) {
+            if (portfolioMatcher) portfolioMatcher.style.display = 'none';
+            return;
+        }
+        
+        let matches = 0;
+        
+        projectCards.forEach(card => {
+            const cardText = `${card.dataset.title} ${card.dataset.description} ${card.dataset.client} ${card.dataset.category}`;
+            const matchScore = searchTexts.reduce((score, term) => {
+                if (cardText.includes(term)) return score + 1;
+                return score;
+            }, 0);
+            
+            if (matchScore >= 1) {
+                card.style.display = 'block';
+                matches++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        
+        if (matches > 0 && portfolioMatcher) {
+            portfolioMatcher.style.display = 'block';
+            setTimeout(() => {
+                portfolioMatcher.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        } else if (portfolioMatcher) {
+            portfolioMatcher.style.display = 'none';
+        }
+    }
+    
+    // Debounce function
+    let matchTimeout;
+    function debounceMatch() {
+        clearTimeout(matchTimeout);
+        matchTimeout = setTimeout(matchProjects, 500);
+    }
+    
+    // Listen to all form inputs
+    document.querySelectorAll('input, textarea, select').forEach(input => {
+        input.addEventListener('input', debounceMatch);
+        input.addEventListener('change', debounceMatch);
+    });
+
+    // Live availability timezone
+    const timezoneEl = document.getElementById('availability-timezone');
+    if (timezoneEl) {
+        const updateTimezone = () => {
+            const now = new Date();
+            const options = { timeZone: 'Africa/Nairobi', hour: '2-digit', minute: '2-digit', hour12: true };
+            const timeStr = now.toLocaleTimeString('en-US', options);
+            timezoneEl.textContent = `Local time: ${timeStr} EAT`;
+        };
+        updateTimezone();
+        setInterval(updateTimezone, 60000);
+    }
+
+    // Submission step animation
+    const dots = document.querySelectorAll('.submission-steps .dot');
+    if (dots.length > 0) {
+        let step = 0;
+        setInterval(() => {
+            dots.forEach((d,i)=>d.classList.toggle('active', i===step));
+            step = (step + 1) % dots.length;
+        }, 2000);
+    }
+
+    // Social feed rotation
+    const liveFeed = document.getElementById('live-feed');
+    if (liveFeed) {
+        const feedItems = [
+            'FinTech startup booked a strategy call.',
+            'E-commerce founder requested MVP estimate.',
+            'Healthcare team shared a video brief.',
+            'SaaS company asked for API hardening.',
+            'EdTech platform requested full stack build.',
+            'Startup founder scheduled technical consultation.',
+            'Enterprise client requested proposal for scaling.'
+        ];
+        let feedIndex = 0;
+        setInterval(() => {
+            feedIndex = (feedIndex + 1) % feedItems.length;
+            liveFeed.innerHTML = `<li>${feedItems[feedIndex]}</li>`;
+        }, 5000);
+    }
+});
+</script>
+{% endblock %}

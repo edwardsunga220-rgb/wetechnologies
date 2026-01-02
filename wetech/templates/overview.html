@@ -1,0 +1,1032 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- 1. Hero -->
+<section class="page-hero">
+    <div class="hero-text-center">
+        <span class="hero-badge"><i class="bi bi-diamond-half"></i> Our Philosophy</span>
+        <h1>The WeTech <span class="text-gradient">Standard</span></h1>
+        <p>We believe code is an asset, not a utility. We build systems designed to survive rapid scaling and market pivots.</p>
+    </div>
+</section>
+
+<!-- 2. The 3 Pillars (Enhanced with Interactions) -->
+<section class="pillars-section section-spacing" id="pillars-section">
+    <div class="section-header">
+        <h2 class="section-title">Our Core <span class="text-gradient">Pillars</span></h2>
+        <p class="section-subtitle">The foundation of everything we build.</p>
+    </div>
+    <div class="three-col-grid">
+        <div class="pillar-card glass-card enhanced-pillar" data-animate="1">
+            <div class="pillar-icon"><i class="bi bi-shield-lock-fill"></i></div>
+            <div class="pillar-progress">
+                <div class="progress-bar" style="width: 0%"></div>
+            </div>
+            <h3>Stability First</h3>
+            <p>We prioritize Python and Django because they are battle-tested. We don't chase trends; we chase reliability for your enterprise.</p>
+            <div class="pillar-stats">
+                <div class="stat-item">
+                    <span class="stat-number" data-target="99.9">0</span><span>%</span>
+                    <span class="stat-label">Uptime</span>
+                </div>
+            </div>
+        </div>
+        <div class="pillar-card glass-card enhanced-pillar" data-animate="2">
+            <div class="pillar-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+            <div class="pillar-progress">
+                <div class="progress-bar" style="width: 0%"></div>
+            </div>
+            <h3>Velocity</h3>
+            <p>Startups die if they move slow. Our modular architecture allows us to ship MVPs in weeks, not months, without technical debt.</p>
+            <div class="pillar-stats">
+                <div class="stat-item">
+                    <span class="stat-number" data-target="2">0</span><span> weeks</span>
+                    <span class="stat-label">MVP Delivery</span>
+                </div>
+            </div>
+        </div>
+        <div class="pillar-card glass-card enhanced-pillar" data-animate="3">
+            <div class="pillar-icon"><i class="bi bi-infinity"></i></div>
+            <div class="pillar-progress">
+                <div class="progress-bar" style="width: 0%"></div>
+            </div>
+            <h3>Future Proof</h3>
+            <p>We document everything. We write clean APIs. When you hire an in-house team later, they will thank you for the clean code.</p>
+            <div class="pillar-stats">
+                <div class="stat-item">
+                    <span class="stat-number" data-target="100">0</span><span>%</span>
+                    <span class="stat-label">Documentation</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 3. Animated Lifecycle Section (Timeline Style) -->
+<section class="lifecycle-section section-spacing" id="lifecycle-section">
+    <div class="section-header">
+        <h2 class="section-title">The Engineering <span class="text-gradient">Lifecycle</span></h2>
+        <p class="section-subtitle">How we take you from Napkin to IPO.</p>
+    </div>
+    <div class="lifecycle-timeline">
+        <div class="timeline-line"></div>
+        <div class="life-step enhanced-life-step" data-step="1">
+            <div class="step-number">01</div>
+            <div class="step-content glass-card">
+                <div class="step-header">
+                    <h4>Discovery</h4>
+                    <div class="step-icon"><i class="bi bi-search"></i></div>
+                </div>
+                <p>We map out your database schema, user flows, and server architecture before writing a single line of code.</p>
+                <div class="step-features">
+                    <span class="feature-tag">Architecture</span>
+                    <span class="feature-tag">Planning</span>
+                </div>
+            </div>
+        </div>
+        <div class="life-step enhanced-life-step" data-step="2">
+            <div class="step-number">02</div>
+            <div class="step-content glass-card">
+                <div class="step-header">
+                    <h4>Sprint</h4>
+                    <div class="step-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+                </div>
+                <p>2-week agile sprints. You get a demoable build every 14 days to track progress and adjust features.</p>
+                <div class="step-features">
+                    <span class="feature-tag">Agile</span>
+                    <span class="feature-tag">2-Week Cycles</span>
+                </div>
+            </div>
+        </div>
+        <div class="life-step enhanced-life-step" data-step="3">
+            <div class="step-number">03</div>
+            <div class="step-content glass-card">
+                <div class="step-header">
+                    <h4>Hardening</h4>
+                    <div class="step-icon"><i class="bi bi-shield-check"></i></div>
+                </div>
+                <p>Security audits, load testing (10k+ users), and penetration testing to ensure zero vulnerabilities.</p>
+                <div class="step-features">
+                    <span class="feature-tag">Security</span>
+                    <span class="feature-tag">Testing</span>
+                </div>
+            </div>
+        </div>
+        <div class="life-step enhanced-life-step" data-step="4">
+            <div class="step-number">04</div>
+            <div class="step-content glass-card">
+                <div class="step-header">
+                    <h4>Scale</h4>
+                    <div class="step-icon"><i class="bi bi-graph-up-arrow"></i></div>
+                </div>
+                <p>We set up auto-scaling on AWS/Azure and hand over documentation or manage it for you.</p>
+                <div class="step-features">
+                    <span class="feature-tag">Cloud</span>
+                    <span class="feature-tag">Auto-Scale</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 4. Enhanced Django Code Section (with Typewriter) -->
+<section class="text-content-split section-spacing" id="django-section">
+    <div class="split-content">
+        <div class="split-text">
+            <h2>Why <span class="text-gradient">Django?</span></h2>
+            <p>In a world of JavaScript frameworks popping up every week, we stick to the framework that powers Instagram, Spotify, and Pinterest.</p>
+            <ul class="check-list">
+                <li>
+                    <i class="bi bi-check-circle-fill check-icon"></i> 
+                    <strong>Security:</strong> Built-in protection against SQL injection and XSS.
+                </li>
+                <li>
+                    <i class="bi bi-check-circle-fill check-icon"></i> 
+                    <strong>Scalability:</strong> Handles massive data loads with ease.
+                </li>
+                <li>
+                    <i class="bi bi-check-circle-fill check-icon"></i> 
+                    <strong>Speed:</strong> "The framework for perfectionists with deadlines."
+                </li>
+            </ul>
+            <button class="code-copy-btn" onclick="copyCode()">
+                <i class="bi bi-clipboard"></i> Copy Code
+            </button>
+        </div>
+        
+        <!-- Image with Code Overlay -->
+        <div class="split-image glass-card code-container">
+            <img src="{% static 'images/img/django.jpg' %}" alt="Django Code" class="code-bg-image">
+            <div class="visual-overlay"></div>
+            
+            <div class="code-block" id="code-block">
+                <div class="code-line"><span class="purple">from</span> django.db <span class="purple">import</span> models</div>
+                <div class="code-line"></div>
+                <div class="code-line"><span class="blue">class</span> <span class="yellow">UnicornStartup</span>(models.Model):</div>
+                <div class="code-line">&nbsp;&nbsp;valuation = models.IntegerField(<span class="orange">default</span>=0)</div>
+                <div class="code-line">&nbsp;&nbsp;tech_stack = models.CharField(<span class="string">"Solid"</span>)</div>
+                <div class="code-line">&nbsp;&nbsp;status = models.CharField(<span class="string">"Scaling"</span>)</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 5. Enhanced Comparison Table -->
+<section class="comparison-section section-spacing" id="comparison-section">
+    <div class="section-header">
+        <h2 class="section-title">The WeTech <span class="text-gradient">Difference</span></h2>
+        <p class="section-subtitle">Why choose enterprise-grade development?</p>
+    </div>
+    <div class="comparison-table-wrapper glass-card">
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Criteria</th>
+                    <th class="wetech-col">
+                        <i class="bi bi-check-circle-fill"></i> WeTech Systems
+                    </th>
+                    <th class="other-col">
+                        <i class="bi bi-x-circle"></i> Freelancers
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="table-row-animated">
+                    <td><i class="bi bi-diagram-3"></i> Architecture</td>
+                    <td class="wetech-col">
+                        <i class="bi bi-check-circle check-animated"></i>
+                        Scalable Microservices
+                    </td>
+                    <td class="other-col">
+                        <i class="bi bi-x-circle x-animated"></i>
+                        <span class="faded-text">Spaghetti Code</span>
+                    </td>
+                </tr>
+                <tr class="table-row-animated">
+                    <td><i class="bi bi-kanban"></i> Project Management</td>
+                    <td class="wetech-col">
+                        <i class="bi bi-check-circle check-animated"></i>
+                        Dedicated PM & Jira
+                    </td>
+                    <td class="other-col">
+                        <i class="bi bi-x-circle x-animated"></i>
+                        <span class="faded-text">Email & WhatsApp</span>
+                    </td>
+                </tr>
+                <tr class="table-row-animated">
+                    <td><i class="bi bi-headset"></i> Post-Launch</td>
+                    <td class="wetech-col">
+                        <i class="bi bi-check-circle check-animated"></i>
+                        SLA Support Agreements
+                    </td>
+                    <td class="other-col">
+                        <i class="bi bi-x-circle x-animated"></i>
+                        <span class="faded-text">Ghosting</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- 6. New Sections: Tech Stack & Metrics -->
+<section class="tech-stack-section section-spacing" id="tech-stack-section">
+    <div class="section-header">
+        <h2 class="section-title">Our Tech <span class="text-gradient">Stack</span></h2>
+        <p class="section-subtitle">Battle-tested technologies for enterprise solutions.</p>
+    </div>
+    <div class="tech-stack-grid">
+        <div class="tech-item-card glass-card" data-tech="django">
+            <div class="tech-icon"><i class="bi bi-box-seam"></i></div>
+            <h4>Django</h4>
+            <p>Python Framework</p>
+            <div class="tech-level">
+                <div class="tech-bar" data-level="95"></div>
+            </div>
+        </div>
+        <div class="tech-item-card glass-card" data-tech="flutter">
+            <div class="tech-icon"><i class="bi bi-phone"></i></div>
+            <h4>Flutter</h4>
+            <p>Cross-Platform Mobile</p>
+            <div class="tech-level">
+                <div class="tech-bar" data-level="90"></div>
+            </div>
+        </div>
+        <div class="tech-item-card glass-card" data-tech="postgresql">
+            <div class="tech-icon"><i class="bi bi-database-fill"></i></div>
+            <h4>PostgreSQL</h4>
+            <p>Database</p>
+            <div class="tech-level">
+                <div class="tech-bar" data-level="98"></div>
+            </div>
+        </div>
+        <div class="tech-item-card glass-card" data-tech="aws">
+            <div class="tech-icon"><i class="bi bi-cloud-fill"></i></div>
+            <h4>AWS</h4>
+            <p>Cloud Infrastructure</p>
+            <div class="tech-level">
+                <div class="tech-bar" data-level="92"></div>
+            </div>
+        </div>
+        <div class="tech-item-card glass-card" data-tech="docker">
+            <div class="tech-icon"><i class="bi bi-container"></i></div>
+            <h4>Docker</h4>
+            <p>Containerization</p>
+            <div class="tech-level">
+                <div class="tech-bar" data-level="88"></div>
+            </div>
+        </div>
+        <div class="tech-item-card glass-card" data-tech="redis">
+            <div class="tech-icon"><i class="bi bi-memory"></i></div>
+            <h4>Redis</h4>
+            <p>Caching & Queue</p>
+            <div class="tech-level">
+                <div class="tech-bar" data-level="85"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Metrics Dashboard Section -->
+<section class="metrics-section section-spacing" id="metrics-section">
+    <div class="section-header">
+        <h2 class="section-title">Numbers That <span class="text-gradient">Matter</span></h2>
+        <p class="section-subtitle">Real metrics from real projects.</p>
+    </div>
+    <div class="metrics-grid">
+        <div class="metric-card glass-card">
+            <div class="metric-icon"><i class="bi bi-folder-check"></i></div>
+            <div class="metric-value">
+                <span class="counter" data-target="150">0</span><span>+</span>
+            </div>
+            <div class="metric-label">Projects Delivered</div>
+            <div class="metric-trend"><i class="bi bi-arrow-up"></i> 15% this year</div>
+        </div>
+        <div class="metric-card glass-card">
+            <div class="metric-icon"><i class="bi bi-people-fill"></i></div>
+            <div class="metric-value">
+                <span class="counter" data-target="50">0</span><span>+</span>
+            </div>
+            <div class="metric-label">Happy Clients</div>
+            <div class="metric-trend"><i class="bi bi-arrow-up"></i> 8 new this month</div>
+        </div>
+        <div class="metric-card glass-card">
+            <div class="metric-icon"><i class="bi bi-lightning-charge"></i></div>
+            <div class="metric-value">
+                <span class="counter" data-target="99.9">0</span><span>%</span>
+            </div>
+            <div class="metric-label">System Uptime</div>
+            <div class="metric-trend"><i class="bi bi-check-circle"></i> SLA Guaranteed</div>
+        </div>
+        <div class="metric-card glass-card">
+            <div class="metric-icon"><i class="bi bi-speedometer2"></i></div>
+            <div class="metric-value">
+                <span class="counter" data-target="10">0</span><span>M+</span>
+            </div>
+            <div class="metric-label">Requests/Day</div>
+            <div class="metric-trend"><i class="bi bi-arrow-up"></i> Peak capacity</div>
+        </div>
+    </div>
+</section>
+
+<!-- 7. CTA -->
+<section class="mini-cta section-spacing" style="text-align: center;">
+    <h3>Align your vision with our engineering.</h3>
+    <br>
+    <a href="{% url 'contact' %}" class="btn-primary">Let's Talk Strategy</a>
+</section>
+
+<style>
+/* Enhanced 3 Pillars Section */
+.enhanced-pillar {
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.enhanced-pillar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.enhanced-pillar:hover::before {
+    left: 100%;
+}
+
+.enhanced-pillar:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 20px 60px rgba(0, 240, 255, 0.2);
+    border-color: rgba(0, 240, 255, 0.4);
+}
+
+.pillar-icon {
+    transition: all 0.4s ease;
+    filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.3));
+}
+
+.enhanced-pillar:hover .pillar-icon {
+    transform: scale(1.2) rotate(5deg);
+    filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.6));
+}
+
+.pillar-progress {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    margin: 15px 0;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    border-radius: 2px;
+    transition: width 1.5s ease;
+}
+
+.pillar-stats {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--primary);
+    font-family: 'Syne', sans-serif;
+}
+
+.stat-label {
+    display: block;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 5px;
+}
+
+/* Animated Lifecycle Timeline */
+.lifecycle-timeline {
+    position: relative;
+    max-width: 1200px;
+    margin: 60px auto 0;
+    padding: 0 20px;
+}
+
+.timeline-line {
+    position: absolute;
+    left: 50px;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--primary), var(--secondary));
+    transform: translateX(-50%);
+    z-index: 0;
+}
+
+.enhanced-life-step {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-bottom: 60px;
+    opacity: 0;
+    transform: translateX(-50px);
+    transition: all 0.6s ease;
+}
+
+.enhanced-life-step.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.step-number {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: var(--dark-1);
+    border: 4px solid var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--primary);
+    font-family: 'Syne', sans-serif;
+    z-index: 2;
+    position: relative;
+    transition: all 0.4s ease;
+}
+
+.enhanced-life-step:hover .step-number {
+    transform: scale(1.1);
+    box-shadow: 0 0 30px rgba(0, 240, 255, 0.6);
+}
+
+.step-content {
+    margin-left: 40px;
+    flex: 1;
+    padding: 30px;
+    transition: all 0.4s ease;
+}
+
+.enhanced-life-step:hover .step-content {
+    transform: translateX(10px);
+    border-color: var(--primary);
+}
+
+.step-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.step-header h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px;
+    margin: 0;
+}
+
+.step-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: rgba(0, 240, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: var(--primary);
+}
+
+.step-features {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.feature-tag {
+    padding: 5px 12px;
+    background: rgba(0, 240, 255, 0.1);
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--primary);
+}
+
+/* Enhanced Django Code Section */
+.code-container {
+    position: relative;
+    overflow: hidden;
+    padding: 0;
+    min-height: 400px;
+}
+
+.code-bg-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+.visual-overlay {
+    background: rgba(10, 10, 18, 0.85);
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+.code-block {
+    position: relative;
+    z-index: 2;
+    margin: 40px;
+    padding: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(10, 10, 18, 0.7);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    line-height: 1.8;
+}
+
+.code-line {
+    opacity: 0;
+    animation: codeReveal 0.5s ease forwards;
+}
+
+.code-line:nth-child(1) { animation-delay: 0.1s; }
+.code-line:nth-child(2) { animation-delay: 0.2s; }
+.code-line:nth-child(3) { animation-delay: 0.3s; }
+.code-line:nth-child(4) { animation-delay: 0.4s; }
+.code-line:nth-child(5) { animation-delay: 0.5s; }
+.code-line:nth-child(6) { animation-delay: 0.6s; }
+
+@keyframes codeReveal {
+    to { opacity: 1; }
+}
+
+.code-block .purple { color: #c792ea; }
+.code-block .blue { color: #82aaff; }
+.code-block .yellow { color: #ffcb6b; }
+.code-block .orange { color: #f78c6c; }
+.code-block .string { color: #c3e88d; }
+
+.code-copy-btn {
+    margin-top: 20px;
+    padding: 12px 24px;
+    background: rgba(0, 240, 255, 0.1);
+    border: 1px solid var(--primary);
+    border-radius: 8px;
+    color: var(--primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+}
+
+.code-copy-btn:hover {
+    background: var(--primary);
+    color: #000;
+    transform: translateY(-2px);
+}
+
+.check-list {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.check-list li {
+    margin: 15px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.check-icon {
+    color: var(--primary);
+    font-size: 20px;
+    margin-top: 2px;
+    animation: checkPulse 2s ease infinite;
+}
+
+@keyframes checkPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Enhanced Comparison Table */
+.comparison-table-wrapper {
+    padding: 40px;
+    overflow-x: auto;
+}
+
+.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #fff;
+}
+
+.comparison-table thead th {
+    text-align: left;
+    padding: 20px 15px;
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.wetech-col {
+    color: var(--primary);
+}
+
+.other-col {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.comparison-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.4s ease;
+}
+
+.comparison-table tbody tr.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.comparison-table tbody td {
+    padding: 20px 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.check-animated, .x-animated {
+    font-size: 24px;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.3s ease;
+}
+
+.table-row-animated.visible .check-animated {
+    opacity: 1;
+    transform: scale(1);
+    color: var(--primary);
+    animation: checkPop 0.5s ease;
+}
+
+.table-row-animated.visible .x-animated {
+    opacity: 1;
+    transform: scale(1);
+    color: rgba(255, 255, 255, 0.3);
+    animation: xPop 0.5s ease;
+}
+
+@keyframes checkPop {
+    0% { transform: scale(0) rotate(-180deg); }
+    50% { transform: scale(1.2) rotate(10deg); }
+    100% { transform: scale(1) rotate(0deg); }
+}
+
+@keyframes xPop {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.faded-text {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Tech Stack Section */
+.tech-stack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 25px;
+    max-width: 1200px;
+    margin: 40px auto 0;
+}
+
+.tech-item-card {
+    text-align: center;
+    padding: 30px 20px;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.tech-item-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    transform: scaleX(0);
+    transition: transform 0.4s ease;
+}
+
+.tech-item-card:hover::before {
+    transform: scaleX(1);
+}
+
+.tech-item-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 240, 255, 0.2);
+}
+
+.tech-icon {
+    font-size: 48px;
+    color: var(--primary);
+    margin-bottom: 15px;
+    transition: all 0.4s ease;
+}
+
+.tech-item-card:hover .tech-icon {
+    transform: scale(1.2) rotate(5deg);
+}
+
+.tech-item-card h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    margin: 10px 0 5px;
+}
+
+.tech-item-card p {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 15px;
+}
+
+.tech-level {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 15px;
+}
+
+.tech-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    border-radius: 3px;
+    width: 0%;
+    transition: width 1.5s ease;
+}
+
+/* Metrics Dashboard */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    max-width: 1200px;
+    margin: 40px auto 0;
+}
+
+.metric-card {
+    text-align: center;
+    padding: 40px 30px;
+    transition: all 0.4s ease;
+    position: relative;
+}
+
+.metric-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    padding: 2px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: -1;
+}
+
+.metric-card:hover::after {
+    opacity: 1;
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+}
+
+.metric-icon {
+    font-size: 40px;
+    color: var(--primary);
+    margin-bottom: 20px;
+}
+
+.metric-value {
+    font-size: 56px;
+    font-weight: 800;
+    font-family: 'Syne', sans-serif;
+    color: #fff;
+    margin: 20px 0;
+}
+
+.metric-value .counter {
+    color: var(--primary);
+}
+
+.metric-label {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 10px;
+}
+
+.metric-trend {
+    font-size: 14px;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .lifecycle-timeline {
+        padding-left: 60px;
+    }
+    
+    .timeline-line {
+        left: 30px;
+    }
+    
+    .step-number {
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+    }
+    
+    .tech-stack-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .comparison-table-wrapper {
+        padding: 20px;
+    }
+    
+    .comparison-table {
+        font-size: 14px;
+    }
+    
+    .comparison-table tbody td {
+        padding: 15px 10px;
+    }
+}
+</style>
+
+<script>
+// Scroll animations using Intersection Observer
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate pillars on scroll
+    const pillars = document.querySelectorAll('.enhanced-pillar');
+    const pillarObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                    // Animate progress bar
+                    const progressBar = entry.target.querySelector('.progress-bar');
+                    if (progressBar) {
+                        progressBar.style.width = '100%';
+                    }
+                    // Animate counter
+                    animateCounter(entry.target.querySelector('.stat-number'));
+                }, index * 200);
+            }
+        });
+    }, { threshold: 0.2 });
+
+    pillars.forEach(pillar => {
+        pillar.style.opacity = '0';
+        pillar.style.transform = 'translateY(30px)';
+        pillarObserver.observe(pillar);
+    });
+
+    // Animate lifecycle steps
+    const lifeSteps = document.querySelectorAll('.enhanced-life-step');
+    const stepObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.3 });
+
+    lifeSteps.forEach(step => stepObserver.observe(step));
+
+    // Animate comparison table rows
+    const tableRows = document.querySelectorAll('.table-row-animated');
+    const tableObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.classList.add('visible');
+                }, index * 150);
+            }
+        });
+    }, { threshold: 0.2 });
+
+    tableRows.forEach(row => tableObserver.observe(row));
+
+    // Animate tech stack bars
+    const techBars = document.querySelectorAll('.tech-bar');
+    const techObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const level = entry.target.getAttribute('data-level');
+                entry.target.style.width = level + '%';
+            }
+        });
+    }, { threshold: 0.5 });
+
+    techBars.forEach(bar => techObserver.observe(bar));
+
+    // Animate metrics counters
+    const counters = document.querySelectorAll('.counter');
+    const counterObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !entry.target.classList.contains('counted')) {
+                entry.target.classList.add('counted');
+                animateCounter(entry.target);
+            }
+        });
+    }, { threshold: 0.5 });
+
+    counters.forEach(counter => counterObserver.observe(counter));
+});
+
+// Counter animation function
+function animateCounter(element) {
+    if (!element) return;
+    const target = parseFloat(element.getAttribute('data-target'));
+    const duration = 2000;
+    const step = target / (duration / 16);
+    let current = 0;
+
+    const timer = setInterval(() => {
+        current += step;
+        if (current >= target) {
+            element.textContent = target.toFixed(target % 1 !== 0 ? 1 : 0);
+            clearInterval(timer);
+        } else {
+            element.textContent = current.toFixed(target % 1 !== 0 ? 1 : 0);
+        }
+    }, 16);
+}
+
+// Copy code function
+function copyCode() {
+    const codeBlock = document.getElementById('code-block');
+    const text = codeBlock.innerText;
+    
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector('.code-copy-btn');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
+        btn.style.background = 'var(--primary)';
+        btn.style.color = '#000';
+        
+        setTimeout(() => {
+            btn.innerHTML = originalHTML;
+            btn.style.background = 'rgba(0, 240, 255, 0.1)';
+            btn.style.color = 'var(--primary)';
+        }, 2000);
+    });
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'dashboard_base.html' %}
+{% block dashboard_content %}
+<div style="max-width: 1200px; margin: 0 auto;">
+    <h2 style="color: #fff; font-family: 'Syne'; margin-bottom: 20px;">Message Logs</h2>
+
+    <div class="glass-card" style="background: rgba(255,255,255,0.02); border-radius: 16px; overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse; color: #fff;">
+            <thead>
+                <tr style="background: rgba(255,255,255,0.05); text-align: left;">
+                    <th style="padding: 15px;">Date</th>
+                    <th style="padding: 15px;">From</th>
+                    <th style="padding: 15px;">Subject</th>
+                    <th style="padding: 15px;">Message Preview</th>
+                    <th style="padding: 15px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for msg in contact_messages %}
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 15px; font-size: 13px; color: #888;">{{ msg.created_at|timesince }} ago</td>
+                    <td style="padding: 15px;">
+                        <strong>{{ msg.name }}</strong><br>
+                        <small style="color: #00d2ff;">{{ msg.email }}</small>
+                    </td>
+                    <td style="padding: 15px;">{{ msg.subject }}</td>
+                    <td style="padding: 15px; color: #ccc;">{{ msg.message|truncatewords:10 }}</td>
+                    <td style="padding: 15px;">
+                        <!-- Reply Button: Prefills the Email Page -->
+                        <a href="{% url 'dash_email' %}?to={{ msg.email }}&name={{ msg.name }}&product={{ msg.subject }}" class="btn-primary" style="padding: 5px 15px; font-size: 12px; text-decoration: none;">
+                            Reply
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" style="padding: 30px; text-align: center;">No messages received.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

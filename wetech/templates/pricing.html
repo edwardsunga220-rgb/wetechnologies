@@ -1,0 +1,396 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- 1. Hero Section -->
+<section class="page-hero">
+    <div class="hero-text-center">
+        <span class="hero-badge">Transparent Pricing</span>
+        <h1>Development <span class="text-gradient">Pricing</span></h1>
+        <p>Fixed-price development packages. No hidden fees. Quality guaranteed.</p>
+    </div>
+</section>
+
+<!-- 2. Standard Solutions Pricing -->
+<section class="standard-pricing-section section-spacing">
+    <div class="section-header" style="text-align: center; margin-bottom: 50px;">
+        <h2 class="section-title-center">Standard Solutions</h2>
+        <p style="color: rgba(255,255,255,0.6); margin-top: 10px;">Ready-to-deploy solutions with fixed pricing</p>
+    </div>
+    
+    <div class="pricing-grid">
+        <!-- Web-based System -->
+        <div class="pricing-card glass-card standard-solution">
+            <div class="solution-icon">
+                <i class="bi bi-laptop"></i>
+            </div>
+            <div class="card-header">
+                <h3>Web-Based System</h3>
+                <p>Full-stack web application development</p>
+            </div>
+            <div class="price-box">
+                <span class="currency">TZS</span>
+                <span class="amount">500,000</span>
+            </div>
+            <a href="{% url 'contact' %}" class="btn-primary full-width">Get Started</a>
+            <ul class="feature-list">
+                <li><span>✅</span> Django/React Backend & Frontend</li>
+                <li><span>✅</span> PostgreSQL Database</li>
+                <li><span>✅</span> Responsive Design</li>
+                <li><span>✅</span> Admin Dashboard</li>
+                <li><span>✅</span> API Integration</li>
+                <li><span>✅</span> 3 Months Support</li>
+            </ul>
+        </div>
+
+        <!-- Mobile Application -->
+        <div class="pricing-card glass-card standard-solution popular">
+            <div class="popular-tag">Most Popular</div>
+            <div class="solution-icon">
+                <i class="bi bi-phone"></i>
+            </div>
+            <div class="card-header">
+                <h3>Mobile Application</h3>
+                <p>Cross-platform mobile app development</p>
+            </div>
+            <div class="price-box">
+                <span class="currency">TZS</span>
+                <span class="amount">500,000</span>
+            </div>
+            <a href="{% url 'contact' %}" class="btn-primary full-width">Get Started</a>
+            <ul class="feature-list">
+                <li><span>✅</span> Flutter iOS & Android</li>
+                <li><span>✅</span> Native Performance</li>
+                <li><span>✅</span> Backend API Integration</li>
+                <li><span>✅</span> Push Notifications</li>
+                <li><span>✅</span> App Store Deployment</li>
+                <li><span>✅</span> 3 Months Support</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- 3. Custom Solutions Pricing -->
+<section class="custom-pricing-section section-spacing" style="background: rgba(255,255,255,0.02); padding: 80px 0;">
+    <div class="section-header" style="text-align: center; margin-bottom: 50px;">
+        <h2 class="section-title-center">Custom Solutions</h2>
+        <p style="color: rgba(255,255,255,0.6); margin-top: 10px;">Tailored development packages for your unique needs</p>
+    </div>
+    
+    <div class="pricing-grid">
+        <!-- Basic Tier -->
+        <div class="pricing-card glass-card custom-tier">
+            <div class="tier-badge basic-badge">Basic</div>
+            <div class="card-header">
+                <h3>Basic Package</h3>
+                <p>Perfect for small businesses and startups</p>
+            </div>
+            <div class="price-box">
+                <span class="currency">TZS</span>
+                <span class="amount">1,500,000</span>
+            </div>
+            <a href="{% url 'contact' %}" class="btn-secondary full-width">Choose Basic</a>
+            <ul class="feature-list">
+                <li><span>✅</span> Custom Web or Mobile App</li>
+                <li><span>✅</span> Up to 5 Core Features</li>
+                <li><span>✅</span> Basic UI/UX Design</li>
+                <li><span>✅</span> Database Setup</li>
+                <li><span>✅</span> Basic Authentication</li>
+                <li><span>✅</span> 2 Months Support</li>
+                <li class="disabled"><span>❌</span> Advanced Integrations</li>
+                <li class="disabled"><span>❌</span> Payment Gateway</li>
+            </ul>
+        </div>
+
+        <!-- Standard Tier (Popular) -->
+        <div class="pricing-card glass-card custom-tier popular">
+            <div class="popular-tag">Recommended</div>
+            <div class="tier-badge standard-badge">Standard</div>
+            <div class="card-header">
+                <h3>Standard Package</h3>
+                <p>Ideal for growing businesses</p>
+            </div>
+            <div class="price-box">
+                <span class="currency">TZS</span>
+                <span class="amount">3,500,000</span>
+            </div>
+            <a href="{% url 'contact' %}" class="btn-primary full-width">Choose Standard</a>
+            <ul class="feature-list">
+                <li><span>✅</span> <strong>Everything in Basic</strong></li>
+                <li><span>✅</span> Up to 15 Core Features</li>
+                <li><span>✅</span> Professional UI/UX Design</li>
+                <li><span>✅</span> Payment Gateway Integration</li>
+                <li><span>✅</span> Advanced Authentication</li>
+                <li><span>✅</span> Third-party API Integration</li>
+                <li><span>✅</span> 4 Months Support</li>
+                <li><span>✅</span> Performance Optimization</li>
+            </ul>
+        </div>
+
+        <!-- Premier Tier -->
+        <div class="pricing-card glass-card custom-tier">
+            <div class="tier-badge premier-badge">Premier</div>
+            <div class="card-header">
+                <h3>Premier Package</h3>
+                <p>For enterprises and complex projects</p>
+            </div>
+            <div class="price-box">
+                <span class="currency">TZS</span>
+                <span class="amount">7,500,000</span>
+            </div>
+            <a href="{% url 'contact' %}" class="btn-secondary full-width">Choose Premier</a>
+            <ul class="feature-list">
+                <li><span>✅</span> <strong>Everything in Standard</strong></li>
+                <li><span>✅</span> Unlimited Features</li>
+                <li><span>✅</span> Premium UI/UX Design</li>
+                <li><span>✅</span> Multi-payment Gateways</li>
+                <li><span>✅</span> Advanced Security & Encryption</li>
+                <li><span>✅</span> Real-time Features</li>
+                <li><span>✅</span> 6 Months Support</li>
+                <li><span>✅</span> Dedicated Project Manager</li>
+                <li><span>✅</span> Scalable Architecture</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- 4. Detailed Comparison Table -->
+<section class="comparison-section section-spacing">
+    <div class="section-header" style="text-align: center; margin-bottom: 50px;">
+        <h2 class="section-title-center">Package <span class="text-gradient">Comparison</span></h2>
+        <p style="color: rgba(255,255,255,0.6); margin-top: 10px;">Compare features across our custom packages</p>
+    </div>
+    
+    <div class="table-responsive glass-card">
+        <table class="tech-table">
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Basic</th>
+                    <th>Standard</th>
+                    <th>Premier</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="feature-name">Core Features</td>
+                    <td>Up to 5</td>
+                    <td>Up to 15</td>
+                    <td>Unlimited</td>
+                </tr>
+                <tr>
+                    <td class="feature-name">UI/UX Design</td>
+                    <td>Basic</td>
+                    <td>Professional</td>
+                    <td>Premium</td>
+                </tr>
+                <tr>
+                    <td class="feature-name">Payment Gateway</td>
+                    <td>❌</td>
+                    <td>✅ Single</td>
+                    <td>✅ Multiple</td>
+                </tr>
+                <tr>
+                    <td class="feature-name">Third-party Integrations</td>
+                    <td>Limited</td>
+                    <td>Standard</td>
+                    <td>Advanced</td>
+                </tr>
+                <tr>
+                    <td class="feature-name">Security Features</td>
+                    <td>Basic</td>
+                    <td>Standard</td>
+                    <td>Advanced & Encrypted</td>
+                </tr>
+                <tr>
+                    <td class="feature-name">Support Period</td>
+                    <td>2 Months</td>
+                    <td>4 Months</td>
+                    <td>6 Months</td>
+                </tr>
+                <tr>
+                    <td class="feature-name">Project Manager</td>
+                    <td>❌</td>
+                    <td>❌</td>
+                    <td>✅ Dedicated</td>
+                </tr>
+                <tr>
+                    <td class="feature-name">Real-time Features</td>
+                    <td>❌</td>
+                    <td>❌</td>
+                    <td>✅</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- 5. FAQ -->
+<section class="faq-section section-spacing" style="margin-bottom: 30px;">
+    <div class="section-header" style="text-align: center; margin-bottom: 50px;">
+        <h2 class="section-title-center">Pricing <span class="text-gradient">FAQ</span></h2>
+    </div>
+    <div class="faq-container">
+        <div class="faq-item glass-card" onclick="toggleFaq(this)">
+            <div class="faq-question"><h3>Are the prices fixed or can they be negotiated?</h3><span class="faq-toggle">+</span></div>
+            <div class="faq-answer"><p>Our standard solutions (Web-based System & Mobile Application) are fixed at 500,000 TZS each. Custom packages (Basic, Standard, Premier) are also fixed-price based on the package selected. For enterprise projects with specific requirements, we offer custom quotes.</p></div>
+        </div>
+        <div class="faq-item glass-card" onclick="toggleFaq(this)">
+            <div class="faq-question"><h3>What's included in the support period?</h3><span class="faq-toggle">+</span></div>
+            <div class="faq-answer"><p>Support includes bug fixes, minor updates, technical assistance, and guidance on using your system. Support period varies by package: Standard Solutions (3 months), Basic (2 months), Standard (4 months), and Premier (6 months).</p></div>
+        </div>
+        <div class="faq-item glass-card" onclick="toggleFaq(this)">
+            <div class="faq-question"><h3>Can I upgrade from Basic to Standard or Premier later?</h3><span class="faq-toggle">+</span></div>
+            <div class="faq-answer"><p>Yes, you can upgrade your package at any time. We'll apply the price difference and extend your support period accordingly. Contact us to discuss upgrade options.</p></div>
+        </div>
+        <div class="faq-item glass-card" onclick="toggleFaq(this)">
+            <div class="faq-question"><h3>What payment methods do you accept?</h3><span class="faq-toggle">+</span></div>
+            <div class="faq-answer"><p>We accept Mobile Money (M-Pesa, Tigo Pesa, Airtel Money), Bank Transfers (TZS), and Cash payments. For international clients, we accept Bank Transfers (SWIFT) and major Credit Cards.</p></div>
+        </div>
+        <div class="faq-item glass-card" onclick="toggleFaq(this)">
+            <div class="faq-question"><h3>How long does development take?</h3><span class="faq-toggle">+</span></div>
+            <div class="faq-answer"><p>Development timeline depends on the package and project complexity: Standard Solutions (4-6 weeks), Basic Package (6-8 weeks), Standard Package (8-12 weeks), and Premier Package (12-16 weeks). Timeline begins after project kickoff and requirements finalization.</p></div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Standard Solutions Section */
+    .standard-pricing-section {
+        padding: 60px 0;
+    }
+    
+    .standard-pricing-section .pricing-grid {
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    
+    .standard-solution {
+        text-align: center;
+    }
+    
+    .solution-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(255, 0, 212, 0.2));
+        border: 1px solid rgba(0, 240, 255, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        color: #00f0ff;
+    }
+    
+    /* Custom Solutions Section */
+    .custom-pricing-section .pricing-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .custom-tier {
+        position: relative;
+    }
+    
+    .tier-badge {
+        position: absolute;
+        top: -15px;
+        right: 20px;
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    .basic-badge {
+        background: linear-gradient(135deg, rgba(0, 240, 255, 0.9), rgba(0, 240, 255, 0.7));
+        color: #000;
+    }
+    
+    .standard-badge {
+        background: linear-gradient(135deg, rgba(255, 0, 212, 0.9), rgba(255, 0, 212, 0.7));
+        color: #fff;
+    }
+    
+    .premier-badge {
+        background: linear-gradient(135deg, rgba(157, 78, 221, 0.9), rgba(157, 78, 221, 0.7));
+        color: #fff;
+    }
+    
+    /* Price Display */
+    .price-box {
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+        gap: 5px;
+        margin: 30px 0;
+    }
+    
+    .currency {
+        font-size: 18px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .amount {
+        font-family: 'Syne', sans-serif;
+        font-size: 48px;
+        font-weight: 700;
+        color: #fff;
+        line-height: 1;
+    }
+    
+    /* Responsive */
+    @media (max-width: 992px) {
+        .standard-pricing-section .pricing-grid,
+        .custom-pricing-section .pricing-grid {
+            grid-template-columns: 1fr;
+            max-width: 500px;
+        }
+        
+        .pricing-card.popular {
+            transform: scale(1);
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .amount {
+            font-size: 36px;
+        }
+        
+        .solution-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 28px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // FAQ Toggle Logic
+    function toggleFaq(item) {
+        const allItems = document.querySelectorAll('.faq-item');
+        allItems.forEach(el => {
+            if (el !== item) el.classList.remove('active');
+        });
+        item.classList.toggle('active');
+    }
+
+    // Format TZS prices on load
+    document.querySelectorAll('.amount').forEach(el => {
+        if (el.textContent && !isNaN(el.textContent.replace(/,/g, ''))) {
+            const num = parseInt(el.textContent.replace(/,/g, ''));
+            el.textContent = num.toLocaleString('en-US');
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,1303 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+{% block dashboard_content %}
+<div style="max-width: 1400px; margin: 0 auto; padding-bottom: 50px;">
+    
+    <!-- Header -->
+    <div class="services-header">
+        <div>
+            <h2 style="color: #fff; font-family: 'Syne'; margin: 0; font-size: 32px;">Service Management</h2>
+            <p style="color: rgba(255,255,255,0.6); margin-top: 5px;">Manage your service offerings and capabilities</p>
+        </div>
+        <a href="{% url 'create_service' %}" class="btn-primary" style="padding: 12px 24px; border-radius: 8px; text-decoration: none; background: linear-gradient(90deg, #00d2ff, #7000ff); color: #fff; font-weight: bold; display: inline-flex; align-items: center; gap: 8px;">
+            <i class="bi bi-plus-circle"></i> Add Service
+        </a>
+    </div>
+
+    <!-- Statistics Overview -->
+    <div class="services-stats-grid">
+        <div class="glass-card stat-card-small">
+            <div class="stat-icon-small" style="background: rgba(0, 210, 255, 0.1); color: #00d2ff;">
+                <i class="bi bi-box-seam"></i>
+            </div>
+            <div>
+                <div class="stat-value-small">{{ total_services }}</div>
+                <div class="stat-label-small">Total Services</div>
+            </div>
+        </div>
+        <div class="glass-card stat-card-small">
+            <div class="stat-icon-small" style="background: rgba(46, 204, 113, 0.1); color: #2ecc71;">
+                <i class="bi bi-tags"></i>
+            </div>
+            <div>
+                <div class="stat-value-small">{{ categories|length }}</div>
+                <div class="stat-label-small">Categories</div>
+            </div>
+        </div>
+        <div class="glass-card stat-card-small">
+            <div class="stat-icon-small" style="background: rgba(155, 89, 182, 0.1); color: #9b59b6;">
+                <i class="bi bi-hash"></i>
+            </div>
+            <div>
+                <div class="stat-value-small">{{ most_used_tags|length }}</div>
+                <div class="stat-label-small">Active Tags</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="services-controls">
+        <!-- Search & Filters -->
+        <div class="controls-left">
+            <div class="search-wrapper">
+                <i class="bi bi-search"></i>
+                <input type="text" id="service-search" placeholder="Search services..." class="search-input">
+            </div>
+            <select id="category-filter" class="filter-select" title="Filter by Category">
+                <option value="all">All Categories</option>
+                {% for cat in categories %}
+                <option value="{{ cat.slug }}">{{ cat.title }} ({{ cat.service_count }})</option>
+                {% endfor %}
+            </select>
+            <select id="sort-select" class="filter-select" title="Sort Services">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="alphabetical">Alphabetical</option>
+                <option value="category">By Category</option>
+            </select>
+        </div>
+        
+        <!-- View Toggle & Bulk Actions -->
+        <div class="controls-right">
+            <div class="view-toggle">
+                <button class="view-btn" data-view="table" onclick="setViewMode('table', this)">
+                    <i class="bi bi-list"></i> Table
+                </button>
+                <button class="view-btn active" data-view="grid" onclick="setViewMode('grid', this)">
+                    <i class="bi bi-grid"></i> Grid
+                </button>
+                <button class="view-btn" data-view="grouped" onclick="setViewMode('grouped', this)">
+                    <i class="bi bi-folder"></i> Grouped
+                </button>
+            </div>
+            <div class="bulk-actions" id="bulk-actions" style="display: none;">
+                <span id="selected-count">0 selected</span>
+                <button class="btn-danger btn-sm" onclick="bulkDelete()">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Filters -->
+    <div class="active-filters" id="active-filters"></div>
+
+
+    <!-- Services Content (Grid View) -->
+    <div id="grid-view" class="services-view" style="display: block;">
+        <div class="services-grid" id="services-grid">
+            {% for service in services %}
+            <div class="service-card glass-card" 
+                 data-service-id="{{ service.id }}"
+                 data-category="{{ service.category.slug }}"
+                 data-title="{{ service.title|lower }}"
+                 data-description="{{ service.description|lower }}">
+                <div class="card-checkbox">
+                    <label for="card-checkbox-{{ service.id }}" style="display: none;">Select Service</label>
+                    <input type="checkbox" class="service-checkbox" id="card-checkbox-{{ service.id }}" value="{{ service.id }}" title="Select this service">
+                </div>
+                <div class="card-image" onclick="openPreviewModal({{ service.id }})">
+                    <img src="{{ service.image.url }}" alt="{{ service.title }}">
+                    <div class="card-overlay">
+                        <button class="preview-card-btn"><i class="bi bi-eye"></i> Preview</button>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <span class="card-category">
+                        <i class="{{ service.category.icon }}"></i> {{ service.category.title }}
+                    </span>
+                    <h3>{{ service.title }}</h3>
+                    <p>{{ service.description|truncatewords:20 }}</p>
+                    <div class="card-tags">
+                        {% for tag in service.tags.all|slice:":4" %}
+                        <span class="tag-badge">
+                            {% if tag.icon %}<i class="{{ tag.icon }}"></i>{% endif %}
+                            {{ tag.name }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                    <div class="card-actions">
+                        <a href="{% url 'edit_service' service.id %}" class="card-action-btn">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                        <a href="{% url 'delete_service' service.id %}" onclick="return confirm('Delete this service?')" class="card-action-btn delete">
+                            <i class="bi bi-trash"></i> Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Services Content (Grouped View) -->
+    <div id="grouped-view" class="services-view" style="display: none;">
+        {% for category in categories %}
+        <div class="category-group glass-card" data-category-slug="{{ category.slug }}">
+            <div class="group-header">
+                <div class="group-info">
+                    <i class="{{ category.icon }}" style="font-size: 24px; color: #00d2ff;"></i>
+                    <div>
+                        <h3>{{ category.title }}</h3>
+                        <span class="group-count">{{ category.service_count }} service{{ category.service_count|pluralize }}</span>
+                    </div>
+                </div>
+                <button class="collapse-btn" onclick="toggleGroup(this)">
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+            </div>
+            <div class="group-content">
+                <div class="grouped-services-grid">
+                    {% for service in category.services.all %}
+                    <div class="grouped-service-item" 
+                         data-service-id="{{ service.id }}"
+                         data-title="{{ service.title|lower }}">
+                        <div class="grouped-checkbox">
+                            <label for="grouped-checkbox-{{ service.id }}" style="display: none;">Select Service</label>
+                            <input type="checkbox" class="service-checkbox" id="grouped-checkbox-{{ service.id }}" value="{{ service.id }}" title="Select this service">
+                        </div>
+                        <img src="{{ service.image.url }}" alt="{{ service.title }}" onclick="openPreviewModal({{ service.id }})">
+                        <div class="grouped-service-info">
+                            <h4>{{ service.title }}</h4>
+                            <div class="grouped-tags">
+                                {% for tag in service.tags.all|slice:":3" %}
+                                <span class="mini-tag">{{ tag.name }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="grouped-actions">
+                                <a href="{% url 'edit_service' service.id %}" class="mini-btn"><i class="bi bi-pencil"></i></a>
+                                <a href="{% url 'delete_service' service.id %}" onclick="return confirm('Delete?')" class="mini-btn delete"><i class="bi bi-trash"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="empty-group">No services in this category</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div id="preview-modal" class="modal">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h2 id="preview-title">Service Preview</h2>
+            <button class="modal-close" onclick="closePreviewModal()">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <div class="modal-body" id="preview-body">
+            <!-- Preview content will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<style>
+/* Services Page Styles */
+.services-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 30px;
+}
+.services-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+.stat-card-small {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+}
+.stat-icon-small {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+.stat-value-small {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+}
+.stat-label-small {
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Controls */
+.services-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.controls-left {
+    display: flex;
+    gap: 15px;
+    flex: 1;
+    flex-wrap: wrap;
+}
+.search-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 250px;
+}
+.search-wrapper i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255,255,255,0.4);
+}
+.search-input {
+    width: 100%;
+    padding: 12px 12px 12px 40px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+}
+.search-input:focus {
+    outline: none;
+    border-color: #00d2ff;
+    background: rgba(0, 210, 255, 0.05);
+}
+.filter-select {
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    min-width: 150px;
+}
+.filter-select:focus {
+    outline: none;
+    border-color: #00d2ff;
+}
+.filter-select option {
+    background: #1a1a2e;
+    color: #fff;
+}
+.controls-right {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+.view-toggle {
+    display: flex;
+    gap: 5px;
+    background: rgba(255,255,255,0.05);
+    padding: 4px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.view-btn {
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+.view-btn.active {
+    background: rgba(0, 210, 255, 0.2);
+    color: #00d2ff;
+}
+.view-btn:hover {
+    color: #00d2ff;
+}
+.bulk-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.bulk-actions #selected-count {
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+}
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 13px;
+}
+.btn-danger {
+    background: rgba(231, 76, 60, 0.2);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    color: #e74c3c;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    padding: 8px 16px;
+}
+
+/* Active Filters */
+.active-filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(0, 210, 255, 0.1);
+    border: 1px solid rgba(0, 210, 255, 0.3);
+    border-radius: 20px;
+    color: #00d2ff;
+    font-size: 12px;
+}
+.filter-chip .close {
+    cursor: pointer;
+    font-size: 14px;
+}
+
+/* Table View */
+.services-table-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+}
+.services-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+.services-table thead {
+    background: linear-gradient(135deg, rgba(0, 210, 255, 0.1), rgba(112, 0, 255, 0.1));
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+.services-table th {
+    padding: 18px 20px;
+    text-align: left;
+    color: rgba(255,255,255,0.9);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    border-bottom: 2px solid rgba(0, 210, 255, 0.2);
+    white-space: nowrap;
+}
+.services-table th:first-child {
+    border-radius: 12px 0 0 0;
+}
+.services-table th:last-child {
+    border-radius: 0 12px 0 0;
+}
+.service-row {
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    transition: all 0.3s ease;
+    background: rgba(255,255,255,0.01);
+}
+.service-row:hover {
+    background: rgba(0, 210, 255, 0.05);
+    transform: translateX(4px);
+    box-shadow: -4px 0 0 rgba(0, 210, 255, 0.3);
+}
+.service-row:last-child {
+    border-bottom: none;
+}
+.service-row td {
+    padding: 20px;
+    vertical-align: middle;
+    border-top: 1px solid rgba(255,255,255,0.02);
+}
+.service-row td:first-child {
+    padding-left: 20px;
+    text-align: center;
+}
+.service-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #00d2ff;
+}
+#select-all {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #00d2ff;
+}
+.service-image-preview {
+    width: 70px;
+    height: 70px;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid rgba(255,255,255,0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    background: rgba(255,255,255,0.02);
+}
+.service-image-preview:hover {
+    border-color: rgba(0, 210, 255, 0.5);
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 210, 255, 0.3);
+}
+.service-image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+.service-image-preview:hover img {
+    transform: scale(1.15);
+}
+.service-title-cell {
+    min-width: 250px;
+}
+.service-title-cell strong {
+    display: block;
+    color: #fff;
+    margin-bottom: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+.service-desc-preview {
+    margin: 0;
+    color: rgba(255,255,255,0.5);
+    font-size: 12px;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    max-width: 300px;
+}
+.category-badge {
+    background: linear-gradient(135deg, rgba(0, 210, 255, 0.15), rgba(112, 0, 255, 0.15)) !important;
+    color: #00d2ff !important;
+    padding: 8px 14px !important;
+    border-radius: 20px !important;
+    font-size: 12px !important;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid rgba(0, 210, 255, 0.3) !important;
+    font-weight: 500;
+    white-space: nowrap;
+}
+.tags-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-width: 250px;
+}
+.tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    background: rgba(0, 210, 255, 0.12);
+    border: 1px solid rgba(0, 210, 255, 0.25);
+    border-radius: 14px;
+    color: #00d2ff;
+    font-size: 11px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+.tag-chip:hover {
+    background: rgba(0, 210, 255, 0.2);
+    transform: translateY(-1px);
+}
+.tag-chip i {
+    font-size: 11px;
+}
+.tag-more {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.7);
+    font-weight: 600;
+}
+.date-cell {
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+.action-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1.5px solid transparent;
+    background: rgba(255,255,255,0.06);
+    cursor: pointer;
+    font-size: 15px;
+}
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.preview-btn {
+    color: #3498db;
+    border-color: rgba(52, 152, 219, 0.3);
+}
+.preview-btn:hover {
+    background: rgba(52, 152, 219, 0.2);
+    border-color: #3498db;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+.edit-btn {
+    color: #f39c12;
+    border-color: rgba(243, 156, 18, 0.3);
+}
+.edit-btn:hover {
+    background: rgba(243, 156, 18, 0.2);
+    border-color: #f39c12;
+    box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+}
+.delete-btn {
+    color: #e74c3c;
+    border-color: rgba(231, 76, 60, 0.3);
+}
+.delete-btn:hover {
+    background: rgba(231, 76, 60, 0.2);
+    border-color: #e74c3c;
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+/* Grid View */
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+}
+.service-card {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: transform 0.3s;
+}
+.service-card:hover {
+    transform: translateY(-5px);
+}
+.card-checkbox {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    z-index: 2;
+}
+.card-image {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+}
+.card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s;
+}
+.card-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: 0.3s;
+}
+.card-image:hover .card-overlay {
+    opacity: 1;
+}
+.card-image:hover img {
+    transform: scale(1.1);
+}
+.preview-card-btn {
+    padding: 10px 20px;
+    background: rgba(0, 210, 255, 0.9);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.card-content {
+    padding: 20px;
+}
+.card-category {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(0, 210, 255, 0.1);
+    border: 1px solid rgba(0, 210, 255, 0.2);
+    border-radius: 20px;
+    color: #00d2ff;
+    font-size: 11px;
+    margin-bottom: 15px;
+}
+.card-content h3 {
+    color: #fff;
+    font-size: 20px;
+    margin: 0 0 10px 0;
+    font-family: 'Syne', sans-serif;
+}
+.card-content p {
+    color: rgba(255,255,255,0.7);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+.card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 15px;
+}
+.tag-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    color: rgba(255,255,255,0.8);
+    font-size: 11px;
+}
+.card-actions {
+    display: flex;
+    gap: 10px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+.card-action-btn {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 13px;
+}
+.card-action-btn:hover {
+    background: rgba(0, 210, 255, 0.1);
+    border-color: #00d2ff;
+    color: #00d2ff;
+}
+.card-action-btn.delete:hover {
+    background: rgba(231, 76, 60, 0.1);
+    border-color: #e74c3c;
+    color: #e74c3c;
+}
+
+/* Grouped View */
+.category-group {
+    margin-bottom: 25px;
+    overflow: hidden;
+}
+.group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    cursor: pointer;
+}
+.group-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.group-info h3 {
+    margin: 0 0 5px 0;
+    color: #fff;
+    font-size: 20px;
+}
+.group-count {
+    color: rgba(255,255,255,0.5);
+    font-size: 12px;
+}
+.collapse-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.6);
+    font-size: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.group-content {
+    padding: 25px;
+    display: block;
+}
+.group-content.collapsed {
+    display: none;
+}
+.grouped-services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+.grouped-service-item {
+    position: relative;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: 0.3s;
+}
+.grouped-service-item:hover {
+    border-color: rgba(0, 210, 255, 0.3);
+    transform: translateY(-3px);
+}
+.grouped-checkbox {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+}
+.grouped-service-item img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    cursor: pointer;
+}
+.grouped-service-info {
+    padding: 15px;
+}
+.grouped-service-info h4 {
+    color: #fff;
+    font-size: 16px;
+    margin: 0 0 10px 0;
+}
+.grouped-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+.mini-tag {
+    padding: 3px 8px;
+    background: rgba(0, 210, 255, 0.1);
+    border: 1px solid rgba(0, 210, 255, 0.2);
+    border-radius: 10px;
+    color: #00d2ff;
+    font-size: 10px;
+}
+.grouped-actions {
+    display: flex;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+.mini-btn {
+    flex: 1;
+    padding: 8px;
+    text-align: center;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+    transition: 0.3s;
+}
+.mini-btn:hover {
+    background: rgba(0, 210, 255, 0.1);
+    border-color: #00d2ff;
+    color: #00d2ff;
+}
+.mini-btn.delete:hover {
+    background: rgba(231, 76, 60, 0.1);
+    border-color: #e74c3c;
+    color: #e74c3c;
+}
+.empty-group {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 40px;
+    color: rgba(255,255,255,0.4);
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.modal-content {
+    background: #1a1a2e;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.modal-large {
+    max-width: 1100px;
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 30px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.modal-header h2 {
+    margin: 0;
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+}
+.modal-close {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 28px;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+.modal-close:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+}
+.modal-body {
+    padding: 30px;
+}
+.preview-content {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 30px;
+}
+.preview-image-large {
+    border-radius: 12px;
+    overflow: hidden;
+}
+.preview-image-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    min-height: 300px;
+}
+.preview-details h3 {
+    color: #fff;
+    font-size: 28px;
+    margin: 15px 0;
+    font-family: 'Syne', sans-serif;
+}
+.preview-category {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(0, 210, 255, 0.1);
+    border: 1px solid rgba(0, 210, 255, 0.3);
+    border-radius: 20px;
+    color: #00d2ff;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+.preview-description {
+    color: rgba(255,255,255,0.8);
+    line-height: 1.8;
+    margin-bottom: 25px;
+    font-size: 15px;
+}
+.preview-tags-section {
+    margin-bottom: 25px;
+}
+.preview-tags-section strong {
+    display: block;
+    color: #fff;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+.preview-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.preview-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: rgba(0, 210, 255, 0.1);
+    border: 1px solid rgba(0, 210, 255, 0.2);
+    border-radius: 20px;
+    color: #00d2ff;
+    font-size: 13px;
+}
+.preview-meta {
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    margin-bottom: 25px;
+    padding-bottom: 25px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.preview-actions {
+    display: flex;
+    gap: 15px;
+}
+.preview-actions .btn-primary,
+.preview-actions .btn-secondary {
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.preview-actions .btn-primary {
+    background: linear-gradient(90deg, #00d2ff, #7000ff);
+    color: #fff;
+}
+.preview-actions .btn-secondary {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+}
+
+@media (max-width: 768px) {
+    .services-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .controls-left {
+        flex-direction: column;
+    }
+    .services-grid {
+        grid-template-columns: 1fr;
+    }
+    .grouped-services-grid {
+        grid-template-columns: 1fr;
+    }
+    .preview-content {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+// Store service data for preview
+const serviceData = {
+    {% for service in services %}
+    {{ service.id }}: {
+        title: "{{ service.title|escapejs }}",
+        description: "{{ service.description|escapejs }}",
+        image: "{{ service.image.url }}",
+        category: "{{ service.category.title }}",
+        categoryIcon: "{{ service.category.icon }}",
+        tags: [
+            {% for tag in service.tags.all %}
+            {name: "{{ tag.name|escapejs }}", icon: "{{ tag.icon|escapejs }}"}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        created: "{{ service.created_at|date:'M d, Y' }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+};
+
+// View Mode Toggle
+function setViewMode(mode, btn) {
+    document.querySelectorAll('.view-btn').forEach(function(b) {
+        b.classList.remove('active');
+    });
+    btn.classList.add('active');
+    
+    document.querySelectorAll('.services-view').forEach(function(v) {
+        v.style.display = 'none';
+    });
+    document.getElementById(mode + '-view').style.display = 'block';
+    
+    applyFilters();
+}
+
+// Search and Filter
+let currentFilters = {
+    search: '',
+    category: 'all',
+    sort: 'newest'
+};
+
+function applyFilters() {
+    const searchTerm = document.getElementById('service-search');
+    const categoryFilter = document.getElementById('category-filter');
+    const sortOption = document.getElementById('sort-select');
+    
+    const searchValue = searchTerm ? searchTerm.value.toLowerCase() : '';
+    const categoryValue = categoryFilter ? categoryFilter.value : 'all';
+    const sortValue = sortOption ? sortOption.value : 'newest';
+    
+    currentFilters = { search: searchValue, category: categoryValue, sort: sortValue };
+    
+    const activeView = document.querySelector('.services-view[style*="block"]') || document.getElementById('grid-view');
+    if (!activeView) return;
+    
+    const rows = activeView.querySelectorAll('.service-row, .service-card, .grouped-service-item');
+    
+    rows.forEach(function(row) {
+        const title = row.dataset.title || '';
+        const desc = row.dataset.description || '';
+        const category = row.dataset.category || '';
+        
+        const matchesSearch = !searchValue || title.includes(searchValue) || desc.includes(searchValue);
+        const matchesCategory = categoryValue === 'all' || category === categoryValue;
+        
+        if (matchesSearch && matchesCategory) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    updateActiveFilters();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('service-search');
+    const categoryFilter = document.getElementById('category-filter');
+    const sortSelect = document.getElementById('sort-select');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', applyFilters);
+    }
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', applyFilters);
+    }
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function() {
+            sortServices(this.value);
+        });
+    }
+    
+    document.querySelectorAll('.service-checkbox').forEach(function(cb) {
+        cb.addEventListener('change', updateBulkActions);
+    });
+    
+    const selectAll = document.getElementById('select-all');
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            const activeView = document.querySelector('.services-view[style*="block"]') || document.getElementById('grid-view');
+            if (activeView) {
+                activeView.querySelectorAll('.service-checkbox').forEach(function(cb) {
+                    cb.checked = this.checked;
+                }.bind(this));
+            }
+            updateBulkActions();
+        });
+    }
+});
+
+function toggleSelectAll(checkbox) {
+    const activeView = document.querySelector('.services-view[style*="block"]') || document.getElementById('grid-view');
+    if (activeView) {
+        activeView.querySelectorAll('.service-checkbox').forEach(function(cb) {
+            cb.checked = checkbox.checked;
+        });
+    }
+    updateBulkActions();
+}
+
+function updateBulkActions() {
+    const selected = document.querySelectorAll('.service-checkbox:checked');
+    const bulkActions = document.getElementById('bulk-actions');
+    const countEl = document.getElementById('selected-count');
+    
+    if (selected.length > 0) {
+        if (bulkActions) bulkActions.style.display = 'flex';
+        if (countEl) countEl.textContent = selected.length + ' selected';
+    } else {
+        if (bulkActions) bulkActions.style.display = 'none';
+    }
+}
+
+function bulkDelete() {
+    const selected = Array.from(document.querySelectorAll('.service-checkbox:checked')).map(function(cb) {
+        return cb.value;
+    });
+    if (selected.length === 0) return;
+    
+    if (confirm('Delete ' + selected.length + ' service(s)?')) {
+        selected.forEach(function(id) {
+            window.location.href = '/dashboard/services/delete/' + id + '/';
+        });
+    }
+}
+
+function updateActiveFilters() {
+    const container = document.getElementById('active-filters');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    if (currentFilters.search) {
+        const chip = document.createElement('div');
+        chip.className = 'filter-chip';
+        chip.innerHTML = 'Search: "' + currentFilters.search + '" <span class="close" onclick="clearFilter(\'search\')">×</span>';
+        container.appendChild(chip);
+    }
+    
+    if (currentFilters.category !== 'all') {
+        const chip = document.createElement('div');
+        chip.className = 'filter-chip';
+        const option = document.querySelector('#category-filter option[value="' + currentFilters.category + '"]');
+        chip.innerHTML = 'Category: ' + (option ? option.textContent : currentFilters.category) + ' <span class="close" onclick="clearFilter(\'category\')">×</span>';
+        container.appendChild(chip);
+    }
+}
+
+function clearFilter(type) {
+    if (type === 'search') {
+        const searchEl = document.getElementById('service-search');
+        if (searchEl) searchEl.value = '';
+    } else if (type === 'category') {
+        const categoryEl = document.getElementById('category-filter');
+        if (categoryEl) categoryEl.value = 'all';
+    }
+    applyFilters();
+}
+
+function sortServices(sortBy) {
+    console.log('Sort by:', sortBy);
+}
+
+// Preview Modal
+function openPreviewModal(serviceId) {
+    const service = serviceData[serviceId];
+    if (!service) return;
+    
+    const modal = document.getElementById('preview-modal');
+    const title = document.getElementById('preview-title');
+    const body = document.getElementById('preview-body');
+    
+    if (!modal || !title || !body) return;
+    
+    title.textContent = service.title;
+    
+    const tagsHtml = service.tags.map(function(tag) {
+        return '<span class="preview-tag"><i class="' + (tag.icon || 'bi bi-check2') + '"></i> ' + tag.name + '</span>';
+    }).join('');
+    
+    body.innerHTML = 
+        '<div class="preview-content">' +
+            '<div class="preview-image-large">' +
+                '<img src="' + service.image + '" alt="' + service.title + '">' +
+            '</div>' +
+            '<div class="preview-details">' +
+                '<div class="preview-category">' +
+                    '<i class="' + service.categoryIcon + '"></i> ' + service.category +
+                '</div>' +
+                '<h3>' + service.title + '</h3>' +
+                '<p class="preview-description">' + service.description + '</p>' +
+                '<div class="preview-tags-section">' +
+                    '<strong>Tech Stack:</strong>' +
+                    '<div class="preview-tags">' + tagsHtml + '</div>' +
+                '</div>' +
+                '<div class="preview-meta">' +
+                    '<span>Created: ' + service.created + '</span>' +
+                '</div>' +
+                '<div class="preview-actions">' +
+                    '<a href="/dashboard/services/edit/' + serviceId + '/" class="btn-primary">Edit Service</a>' +
+                    '<a href="/dashboard/services/delete/' + serviceId + '/" onclick="return confirm(\'Delete this service?\')" class="btn-secondary">Delete</a>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+    
+    modal.style.display = 'flex';
+}
+
+function closePreviewModal() {
+    const modal = document.getElementById('preview-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+function toggleGroup(btn) {
+    const group = btn.closest('.category-group');
+    if (!group) return;
+    const content = group.querySelector('.group-content');
+    const icon = btn.querySelector('i');
+    if (content) content.classList.toggle('collapsed');
+    if (icon) {
+        icon.classList.toggle('bi-chevron-down');
+        icon.classList.toggle('bi-chevron-up');
+    }
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('preview-modal');
+    if (event.target == modal) {
+        closePreviewModal();
+    }
+};
+</script>
+{% endblock %}

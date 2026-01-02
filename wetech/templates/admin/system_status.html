@@ -1,0 +1,298 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}System Status & Reliability | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/system_status.css' %}">
+<style>
+    /* Import styles from dashboard */
+    {% include 'dashboard/system_status.html' %}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="system-status-container">
+    
+    <!-- Professional Header -->
+    <div class="status-header">
+        <div class="header-content">
+            <div class="header-title-section">
+                <div class="title-badge">
+                    <i class="bi bi-shield-check"></i>
+                    <span>System Monitoring</span>
+                </div>
+                <h1 class="main-title">System Status & Reliability</h1>
+                <p class="subtitle">Real-time monitoring, health checks, and system diagnostics</p>
+            </div>
+            <div class="header-actions">
+                <a href="{% url 'admin:create_backup' %}" class="btn-primary" onclick="return confirm('Create a new database backup? This may take a few seconds.');">
+                    <i class="bi bi-plus-circle"></i>
+                    <span>Create Backup</span>
+                </a>
+                <a href="{% url 'admin:health_check' %}" class="btn-secondary" target="_blank">
+                    <i class="bi bi-heart-pulse"></i>
+                    <span>Health Check</span>
+                </a>
+                <div class="status-indicator" id="live-indicator">
+                    <span class="pulse-dot"></span>
+                    <span>Live</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Health Overview Cards -->
+    <div class="health-overview-grid">
+        <div class="health-card health-card-primary">
+            <div class="health-card-header">
+                <div class="health-icon-wrapper status-{% if health_data.database.status == 'ok' %}success{% else %}error{% endif %}">
+                    <i class="bi bi-database"></i>
+                </div>
+                <div class="health-status-badge status-{% if health_data.database.status == 'ok' %}success{% else %}error{% endif %}">
+                    {% if health_data.database.status == 'ok' %}Operational{% else %}Offline{% endif %}
+                </div>
+            </div>
+            <div class="health-card-body">
+                <h3 class="health-metric">Database</h3>
+                <p class="health-description">{{ health_data.database.message }}</p>
+                <div class="health-footer">
+                    <span class="health-label">Connection Status</span>
+                    <span class="health-value">{% if health_data.database.status == 'ok' %}Active{% else %}Inactive{% endif %}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="health-card health-card-warning">
+            <div class="health-card-header">
+                <div class="health-icon-wrapper status-{% if health_data.disk.status == 'ok' %}success{% elif health_data.disk.status == 'warning' %}warning{% else %}error{% endif %}">
+                    <i class="bi bi-hdd-stack"></i>
+                </div>
+                <div class="health-status-badge status-{% if health_data.disk.status == 'ok' %}success{% elif health_data.disk.status == 'warning' %}warning{% else %}error{% endif %}">
+                    {{ health_data.disk.used_percent|default:"0" }}% Used
+                </div>
+            </div>
+            <div class="health-card-body">
+                <h3 class="health-metric">Storage</h3>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ health_data.disk.used_percent|default:0 }}%; background: {% if health_data.disk.used_percent > 90 %}#ef4444{% elif health_data.disk.used_percent > 75 %}#f59e0b{% else %}#10b981{% endif %};"></div>
+                    </div>
+                </div>
+                <div class="health-footer">
+                    <span class="health-label">Available Space</span>
+                    <span class="health-value">{{ health_data.disk.free_gb|default:"0" }} GB</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="health-card health-card-info">
+            <div class="health-card-header">
+                <div class="health-icon-wrapper status-info">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div class="health-status-badge status-info">
+                    {{ errors_today|default:0 }} Today
+                </div>
+            </div>
+            <div class="health-card-body">
+                <h3 class="health-metric">Error Rate</h3>
+                <p class="health-description">{{ log_stats.error_log_lines|default:0 }} total errors logged</p>
+                <div class="health-footer">
+                    <span class="health-label">Error Log Size</span>
+                    <span class="health-value">{{ log_stats.error_log_size|default:0 }} KB</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="health-card health-card-success">
+            <div class="health-card-header">
+                <div class="health-icon-wrapper status-success">
+                    <i class="bi bi-archive"></i>
+                </div>
+                <div class="health-status-badge status-success">
+                    {{ backup_count|default:0 }} Total
+                </div>
+            </div>
+            <div class="health-card-body">
+                <h3 class="health-metric">Backups</h3>
+                <p class="health-description">{% if latest_backup %}Latest: {{ latest_backup.date|slice:":10" }}{% else %}No backups available{% endif %}</p>
+                <div class="health-footer">
+                    <span class="health-label">Last Backup</span>
+                    <span class="health-value">{% if latest_backup %}{{ latest_backup.size_mb }} MB{% else %}N/A{% endif %}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="health-card health-card-performance">
+            <div class="health-card-header">
+                <div class="health-icon-wrapper status-warning">
+                    <i class="bi bi-speedometer"></i>
+                </div>
+                <div class="health-status-badge status-warning">
+                    {{ slow_requests_today|default:0 }} Slow
+                </div>
+            </div>
+            <div class="health-card-body">
+                <h3 class="health-metric">Performance</h3>
+                <p class="health-description">Requests exceeding 1 second</p>
+                <div class="health-footer">
+                    <span class="health-label">Today</span>
+                    <span class="health-value">> 1s threshold</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="health-card health-card-overall">
+            <div class="health-card-header">
+                <div class="health-icon-wrapper status-success" id="overall-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="health-status-badge status-success" id="overall-badge">
+                    Healthy
+                </div>
+            </div>
+            <div class="health-card-body">
+                <h3 class="health-metric" id="overall-status">System Status</h3>
+                <p class="health-description" id="last-check">Last checked: Just now</p>
+                <div class="health-footer">
+                    <span class="health-label">Uptime</span>
+                    <span class="health-value">99.9%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Database Backups Section -->
+    <div class="card-modern">
+        <div class="card-header-modern">
+            <div class="card-title-group">
+                <i class="bi bi-database-fill card-icon"></i>
+                <div>
+                    <h3 class="card-title">Database Backups</h3>
+                    <p class="card-subtitle">Data protection and recovery</p>
+                </div>
+            </div>
+            <a href="{% url 'admin:create_backup' %}" class="btn-secondary" onclick="return confirm('Create a new database backup? This may take a few seconds.');">
+                <i class="bi bi-plus-circle"></i>
+                <span>Create Backup</span>
+            </a>
+        </div>
+        <div class="card-body-modern">
+            <div class="backups-list">
+                {% if latest_backup %}
+                    <div class="backup-item">
+                        <div class="backup-info">
+                            <div class="backup-name">
+                                <i class="bi bi-file-earmark-zip" style="color: #9b59b6;"></i>
+                                {{ latest_backup.filename }}
+                            </div>
+                            <div class="backup-meta">{{ latest_backup.size_mb }} MB • {{ latest_backup.date }}</div>
+                        </div>
+                        <div class="backup-actions">
+                            <a href="{% url 'admin:download_backup' latest_backup.filename %}" class="btn-icon" title="Download">
+                                <i class="bi bi-download"></i>
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-archive"></i>
+                        <div>No backups found</div>
+                        <div style="margin-top: 10px; font-size: 12px;">Create your first backup to protect your data</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card-modern">
+        <div class="card-header-modern">
+            <div class="card-title-group">
+                <i class="bi bi-tools card-icon"></i>
+                <div>
+                    <h3 class="card-title">Quick Actions</h3>
+                    <p class="card-subtitle">System management tools</p>
+                </div>
+            </div>
+        </div>
+        <div class="card-body-modern">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <a href="{% url 'admin:create_backup' %}" class="action-card" onclick="return confirm('Create a new database backup?');">
+                    <i class="bi bi-database-add"></i>
+                    <span>Create Backup</span>
+                </a>
+                <a href="{% url 'admin:health_check' %}" class="action-card" target="_blank">
+                    <i class="bi bi-heart-pulse"></i>
+                    <span>Health Check</span>
+                </a>
+                <a href="/health/" class="action-card" target="_blank">
+                    <i class="bi bi-activity"></i>
+                    <span>View Health API</span>
+                </a>
+                <a href="{% url 'admin:index' %}" class="action-card">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>Back to Admin</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+.action-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 24px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    text-decoration: none;
+    color: #fff;
+    transition: all 0.3s;
+}
+
+.action-card:hover {
+    border-color: rgba(0, 210, 255, 0.3);
+    background: rgba(255,255,255,0.06);
+    transform: translateY(-2px);
+}
+
+.action-card i {
+    font-size: 32px;
+    color: #00d2ff;
+}
+
+.action-card span {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: rgba(0, 210, 255, 0.1);
+    border: 1px solid rgba(0, 210, 255, 0.3);
+    border-radius: 8px;
+    color: #00d2ff;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-secondary:hover {
+    background: rgba(0, 210, 255, 0.2);
+    border-color: #00d2ff;
+}
+</style>
+{% endblock %}
+

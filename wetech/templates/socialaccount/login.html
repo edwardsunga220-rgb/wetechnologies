@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sign In via Google | WeTech{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #00f0ff;
+        --secondary: #7000ff;
+        --dark-bg: #05050a;
+        --glass: rgba(255, 255, 255, 0.05);
+        --border: rgba(255, 255, 255, 0.15);
+        --glow-cyan: rgba(0, 240, 255, 0.4);
+        --glow-purple: rgba(112, 0, 255, 0.4);
+    }
+
+    body {
+        background: linear-gradient(135deg, #0a0a14 0%, #05050a 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+        font-family: 'Outfit', sans-serif;
+    }
+
+    /* Animated Background Grid */
+    .cyber-grid {
+        position: fixed;
+        width: 200%;
+        height: 200%;
+        background-image: 
+            linear-gradient(rgba(0, 240, 255, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 240, 255, 0.1) 1px, transparent 1px);
+        background-size: 50px 50px;
+        transform: perspective(1000px) rotateX(60deg) translateY(-150px) translateZ(-300px);
+        animation: moveGrid 25s linear infinite;
+        opacity: 0.3;
+        z-index: 0;
+        top: 0;
+        left: 0;
+    }
+
+    @keyframes moveGrid {
+        0% { transform: perspective(1000px) rotateX(60deg) translateY(0) translateZ(-300px); }
+        100% { transform: perspective(1000px) rotateX(60deg) translateY(50px) translateZ(-300px); }
+    }
+
+    /* Ambient Glows */
+    .ambient-glow {
+        position: fixed;
+        width: 800px;
+        height: 800px;
+        background: radial-gradient(circle, var(--glow-cyan) 0%, transparent 70%);
+        top: -200px;
+        left: -200px;
+        z-index: 0;
+        pointer-events: none;
+        animation: pulse 4s ease-in-out infinite;
+    }
+
+    .ambient-glow::after {
+        content: '';
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, var(--glow-purple) 0%, transparent 70%);
+        bottom: -300px;
+        right: -300px;
+        animation: pulse 4s ease-in-out infinite reverse;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 0.4; transform: scale(1); }
+        50% { opacity: 0.6; transform: scale(1.1); }
+    }
+
+    /* Floating Particles */
+    .particles {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        z-index: 1;
+        pointer-events: none;
+        overflow: hidden;
+    }
+
+    .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: var(--primary);
+        border-radius: 50%;
+        opacity: 0.6;
+        animation: float 15s infinite;
+    }
+
+    .particle:nth-child(1) { left: 10%; animation-delay: 0s; }
+    .particle:nth-child(2) { left: 30%; animation-delay: 2s; }
+    .particle:nth-child(3) { left: 50%; animation-delay: 4s; }
+    .particle:nth-child(4) { left: 70%; animation-delay: 6s; }
+    .particle:nth-child(5) { left: 90%; animation-delay: 8s; }
+
+    @keyframes float {
+        0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+        10% { opacity: 0.6; }
+        90% { opacity: 0.6; }
+        100% { transform: translateY(-100px) translateX(50px); opacity: 0; }
+    }
+
+    /* Login Card */
+    .google-login-card {
+        width: 100%;
+        max-width: 520px;
+        background: rgba(10, 10, 20, 0.85);
+        backdrop-filter: blur(30px) saturate(180%);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+        border: 2px solid var(--border);
+        border-radius: 32px;
+        padding: 60px 50px;
+        box-shadow: 
+            0 25px 60px rgba(0, 0, 0, 0.6),
+            0 0 40px rgba(0, 240, 255, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        position: relative;
+        z-index: 10;
+        text-align: center;
+        animation: cardEntrance 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        overflow: hidden;
+    }
+
+    .google-login-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--primary), var(--secondary), transparent);
+        opacity: 0.6;
+    }
+
+    @keyframes cardEntrance {
+        from { 
+            opacity: 0; 
+            transform: translateY(40px) scale(0.95); 
+        }
+        to { 
+            opacity: 1; 
+            transform: translateY(0) scale(1); 
+        }
+    }
+
+    .google-login-card h1 {
+        font-family: 'Syne', sans-serif;
+        font-size: 36px;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 16px;
+        letter-spacing: -0.5px;
+    }
+
+    .google-login-card p {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 16px;
+        margin-bottom: 45px;
+        line-height: 1.7;
+        font-weight: 400;
+    }
+
+    /* Google Icon */
+    .google-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 50%;
+        border: 2px solid var(--border);
+        box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.3),
+            0 0 20px rgba(0, 240, 255, 0.2);
+        position: relative;
+        animation: iconFloat 3s ease-in-out infinite;
+    }
+
+    .google-icon::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        border-radius: 50%;
+        padding: 2px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary), var(--primary));
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        opacity: 0.5;
+        animation: rotate 3s linear infinite;
+    }
+
+    @keyframes iconFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .google-icon svg {
+        width: 40px;
+        height: 40px;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Continue Button */
+    .btn-continue {
+        width: 100%;
+        padding: 18px 32px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border: none;
+        border-radius: 12px;
+        color: #fff;
+        font-weight: 600;
+        font-size: 17px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        display: inline-block;
+        font-family: 'Outfit', sans-serif;
+        letter-spacing: 0.3px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 
+            0 8px 24px rgba(0, 240, 255, 0.25),
+            0 4px 12px rgba(112, 0, 255, 0.25);
+    }
+
+    .btn-continue::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn-continue:hover {
+        transform: translateY(-3px);
+        box-shadow: 
+            0 12px 32px rgba(0, 240, 255, 0.4),
+            0 8px 16px rgba(112, 0, 255, 0.3);
+    }
+
+    .btn-continue:hover::before {
+        left: 100%;
+    }
+
+    .btn-continue:active {
+        transform: translateY(-1px);
+    }
+
+    .form form {
+        margin: 0;
+    }
+
+    /* Back Link */
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 35px;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 15px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-weight: 400;
+    }
+
+    .back-link:hover {
+        color: var(--primary);
+        transform: translateX(-4px);
+    }
+
+    /* Loading State */
+    .auto-redirecting .google-login-card {
+        opacity: 0.8;
+    }
+
+    .auto-redirecting .btn-continue {
+        pointer-events: none;
+        opacity: 0.7;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+        .google-login-card {
+            padding: 45px 30px;
+            max-width: 100%;
+        }
+
+        .google-login-card h1 {
+            font-size: 28px;
+        }
+
+        .google-icon {
+            width: 70px;
+            height: 70px;
+        }
+
+        .google-icon svg {
+            width: 35px;
+            height: 35px;
+        }
+    }
+</style>
+<script>
+    // Auto-submit the form after page loads (redirects immediately to Google)
+    document.addEventListener('DOMContentLoaded', function() {
+        // Create floating particles
+        const particlesContainer = document.querySelector('.particles');
+        if (particlesContainer) {
+            for (let i = 0; i < 5; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        const form = document.querySelector('form');
+        if (form) {
+            // Add a small delay so user sees the page briefly
+            setTimeout(function() {
+                form.classList.add('auto-redirecting');
+                form.submit();
+            }, 800); // 800ms delay - user sees the beautiful page then auto-redirects
+        }
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="cyber-grid"></div>
+<div class="ambient-glow"></div>
+<div class="particles"></div>
+
+<div class="google-login-card">
+    <div class="google-icon">
+        <svg viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+    </div>
+    
+    <h1>Sign In Via Google</h1>
+    <p>You are about to sign in using your Google account. Redirecting to Google...</p>
+    
+    <form method="post" class="form" id="googleLoginForm">
+        {% csrf_token %}
+        {% if redirect_field_value %}
+        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+        {% endif %}
+        <button type="submit" class="btn-continue">Continue with Google</button>
+    </form>
+    
+    <a href="{% url 'login' %}" class="back-link">
+        <span>←</span>
+        <span>Back to Login</span>
+    </a>
+</div>
+{% endblock %}
+

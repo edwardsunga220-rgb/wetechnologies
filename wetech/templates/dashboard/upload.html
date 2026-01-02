@@ -1,0 +1,119 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block dashboard_content %}
+<div style="max-width: 1200px; margin: 0 auto;">
+    
+    <!-- Header Aligned Left (Matches Products Page) -->
+    <div style="margin-bottom: 30px;">
+        <h2 style="color: #fff; font-family: 'Syne'; margin: 0;">Upload New System</h2>
+        <p style="color: rgba(255,255,255,0.5); font-size: 14px; margin-top: 5px;">Publish a new product to the marketplace.</p>
+    </div>
+
+    <!-- The Form Card -->
+    <div class="dash-card glass-card" style="padding: 40px; max-width: 800px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px;">
+        
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <!-- Row 1 -->
+            <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+                <div style="flex: 2;">
+                    <label style="display:block; margin-bottom:8px; color:#ccc; font-size: 13px;">System Name</label>
+                    {{ form.title }}
+                </div>
+                <div style="flex: 1;">
+                    <label style="display:block; margin-bottom:8px; color:#ccc; font-size: 13px;">Category</label>
+                    {{ form.category }}
+                </div>
+            </div>
+
+            <!-- CUSTOM UPLOAD ZONE -->
+            <!-- We hide the actual input and trigger it with JS -->
+            <div class="upload-zone" onclick="document.getElementById('id_image').click()">
+                <i class="bi bi-cloud-arrow-up" style="font-size: 40px; color: #00d2ff; margin-bottom: 10px; display: block;"></i>
+                <p id="file-label" style="margin: 0; color: rgba(255,255,255,0.7);">Click to upload cover image</p>
+                <p id="file-name" style="margin: 5px 0 0 0; color: #00d2ff; font-weight: bold; font-size: 14px;"></p>
+                
+                <!-- Hide the ugly default input -->
+                <div style="display: none;">
+                    {{ form.image }}
+                </div>
+            </div>
+
+            <!-- Row 2 -->
+            <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+                <div style="flex: 1;">
+                    <label style="display:block; margin-bottom:8px; color:#ccc; font-size: 13px;">Price ($)</label>
+                    {{ form.price }}
+                </div>
+                <div style="flex: 2;">
+                    <label style="display:block; margin-bottom:8px; color:#ccc; font-size: 13px;">Demo Link</label>
+                    {{ form.demo_link }}
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:8px; color:#ccc; font-size: 13px;">Description</label>
+                {{ form.description }}
+            </div>
+
+            <!-- Features -->
+            <div class="form-group" style="margin-bottom: 30px;">
+                <label style="display:block; margin-bottom:8px; color:#ccc; font-size: 13px;">Key Features (Comma separated)</label>
+                {{ form.features }}
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%; padding: 16px; background: linear-gradient(90deg, #00d2ff, #3a7bd5); border: none; color: white; font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 16px;">
+                Publish to Marketplace <i class="bi bi-arrow-right"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Simple script to show the selected filename
+    document.getElementById('id_image').onchange = function () {
+        var fileName = this.files[0].name;
+        document.getElementById('file-label').innerText = "File Selected:";
+        document.getElementById('file-name').innerText = fileName;
+        document.querySelector('.upload-zone').style.borderColor = '#00d2ff';
+        document.querySelector('.upload-zone').style.background = 'rgba(0, 210, 255, 0.05)';
+    };
+</script>
+
+<style>
+    .upload-zone {
+        border: 2px dashed rgba(255,255,255,0.1);
+        padding: 40px;
+        text-align: center;
+        border-radius: 12px;
+        background: rgba(0,0,0,0.2);
+        transition: 0.3s;
+        cursor: pointer; /* Makes it look clickable */
+        margin-bottom: 25px;
+    }
+    .upload-zone:hover {
+        border-color: #00d2ff;
+        background: rgba(0, 210, 255, 0.05);
+    }
+    
+    /* Styling Django Form Widgets */
+    .form-control, .form-select, input[type="text"], input[type="number"], input[type="url"], textarea {
+        width: 100%;
+        padding: 12px 15px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 8px;
+        color: white;
+        font-family: 'Outfit', sans-serif;
+    }
+    
+    input:focus, textarea:focus, select:focus {
+        outline: none;
+        border-color: #00d2ff;
+        box-shadow: 0 0 10px rgba(0, 210, 255, 0.1);
+    }
+</style>
+{% endblock %}

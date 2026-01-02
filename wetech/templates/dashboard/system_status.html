@@ -1,0 +1,1501 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block dashboard_content %}
+<div class="system-status-container">
+    
+    <!-- Professional Header -->
+    <div class="status-header">
+        <div class="header-content">
+            <div class="header-title-section">
+                <div class="title-badge">
+                    <i class="bi bi-shield-check"></i>
+                    <span>System Monitoring</span>
+                </div>
+                <h1 class="main-title">System Status & Reliability</h1>
+                <p class="subtitle">Real-time monitoring, health checks, and system diagnostics</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn-primary" onclick="refreshAll()">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    <span>Refresh All</span>
+                </button>
+                <div class="status-indicator" id="live-indicator">
+                    <span class="pulse-dot"></span>
+                    <span>Live</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Health Overview Cards -->
+    <div class="health-overview-grid">
+        <div class="health-card health-card-primary">
+            <div class="health-card-header">
+                <div class="health-icon-wrapper status-{% if health_data.database.status == 'ok' %}success{% else %}error{% endif %}">
+                    <i class="bi bi-database"></i>
+                </div>
+                <div class="health-status-badge status-{% if health_data.database.status == 'ok' %}success{% else %}error{% endif %}">
+                    {% if health_data.database.status == 'ok' %}Operational{% else %}Offline{% endif %}
+                </div>
+            </div>
+            <div class="health-card-body">
+                <h3 class="health-metric">Database</h3>
+                <p class="health-description">{{ health_data.database.message }}</p>
+                <div class="health-footer">
+                    <span class="health-label">Connection Status</span>
+                    <span class="health-value">{% if health_data.database.status == 'ok' %}Active{% else %}Inactive{% endif %}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="health-card health-card-warning">
+            <div class="health-card-header">
+                <div class="health-icon-wrapper status-{% if health_data.disk.status == 'ok' %}success{% elif health_data.disk.status == 'warning' %}warning{% else %}error{% endif %}">
+                    <i class="bi bi-hdd-stack"></i>
+                </div>
+                <div class="health-status-badge status-{% if health_data.disk.status == 'ok' %}success{% elif health_data.disk.status == 'warning' %}warning{% else %}error{% endif %}">
+                    {{ health_data.disk.used_percent|default:"0" }}% Used
+                </div>
+            </div>
+            <div class="health-card-body">
+                <h3 class="health-metric">Storage</h3>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ health_data.disk.used_percent|default:0 }}%; background: {% if health_data.disk.used_percent > 90 %}#ef4444{% elif health_data.disk.used_percent > 75 %}#f59e0b{% else %}#10b981{% endif %};"></div>
+                    </div>
+                </div>
+                <div class="health-footer">
+                    <span class="health-label">Available Space</span>
+                    <span class="health-value">{{ health_data.disk.free_gb|default:"0" }} GB</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="health-card health-card-info">
+            <div class="health-card-header">
+                <div class="health-icon-wrapper status-info">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div class="health-status-badge status-info">
+                    {{ errors_today|default:0 }} Today
+                </div>
+            </div>
+            <div class="health-card-body">
+                <h3 class="health-metric">Error Rate</h3>
+                <p class="health-description">{{ log_stats.error_log_lines|default:0 }} total errors logged</p>
+                <div class="health-footer">
+                    <span class="health-label">Error Log Size</span>
+                    <span class="health-value">{{ log_stats.error_log_size|default:0 }} KB</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="health-card health-card-success">
+            <div class="health-card-header">
+                <div class="health-icon-wrapper status-success">
+                    <i class="bi bi-archive"></i>
+                </div>
+                <div class="health-status-badge status-success">
+                    {{ backup_count|default:0 }} Total
+                </div>
+            </div>
+            <div class="health-card-body">
+                <h3 class="health-metric">Backups</h3>
+                <p class="health-description">{% if latest_backup %}Latest: {{ latest_backup.date|slice:":10" }}{% else %}No backups available{% endif %}</p>
+                <div class="health-footer">
+                    <span class="health-label">Last Backup</span>
+                    <span class="health-value">{% if latest_backup %}{{ latest_backup.size_mb }} MB{% else %}N/A{% endif %}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="health-card health-card-performance">
+            <div class="health-card-header">
+                <div class="health-icon-wrapper status-warning">
+                    <i class="bi bi-speedometer"></i>
+                </div>
+                <div class="health-status-badge status-warning">
+                    {{ slow_requests_today|default:0 }} Slow
+                </div>
+            </div>
+            <div class="health-card-body">
+                <h3 class="health-metric">Performance</h3>
+                <p class="health-description">Requests exceeding 1 second</p>
+                <div class="health-footer">
+                    <span class="health-label">Today</span>
+                    <span class="health-value">> 1s threshold</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="health-card health-card-overall">
+            <div class="health-card-header">
+                <div class="health-icon-wrapper status-success" id="overall-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="health-status-badge status-success" id="overall-badge">
+                    Healthy
+                </div>
+            </div>
+            <div class="health-card-body">
+                <h3 class="health-metric" id="overall-status">System Status</h3>
+                <p class="health-description" id="last-check">Last checked: Just now</p>
+                <div class="health-footer">
+                    <span class="health-label">Uptime</span>
+                    <span class="health-value">99.9%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="content-grid">
+        
+        <!-- Left Column: Activities & Logs -->
+        <div class="content-column">
+            
+            <!-- System Activities Timeline -->
+            <div class="card-modern">
+                <div class="card-header-modern">
+                    <div class="card-title-group">
+                        <i class="bi bi-activity card-icon"></i>
+                        <div>
+                            <h3 class="card-title">System Activities</h3>
+                            <p class="card-subtitle">Recent events and transactions</p>
+                        </div>
+                    </div>
+                    <select id="activity-filter" onchange="filterActivities()" class="filter-select">
+                        <option value="all">All Activities</option>
+                        <option value="payment">Payments</option>
+                        <option value="invoice">Invoices</option>
+                        <option value="error">Errors</option>
+                    </select>
+                </div>
+                <div class="card-body-modern">
+                    <div id="activities-list" class="activities-timeline">
+                        <div class="loading-state">
+                            <div class="spinner"></div>
+                            <p>Loading activities...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Application Logs -->
+            <div class="card-modern">
+                <div class="card-header-modern">
+                    <div class="card-title-group">
+                        <i class="bi bi-file-text card-icon"></i>
+                        <div>
+                            <h3 class="card-title">Application Logs</h3>
+                            <p class="card-subtitle">System events and operations</p>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <select id="log-lines" onchange="loadLogs('app')" class="filter-select-small">
+                            <option value="20">20 lines</option>
+                            <option value="50">50 lines</option>
+                            <option value="100">100 lines</option>
+                        </select>
+                        <button class="btn-icon" onclick="loadLogs('app')" title="Refresh">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body-modern">
+                    <div id="app-logs-container" class="log-viewer">
+                        <div class="loading-state">
+                            <div class="spinner"></div>
+                            <p>Loading logs...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Health Details, Errors, Backups -->
+        <div class="content-column">
+            
+            <!-- Detailed Health Check -->
+            <div class="card-modern">
+                <div class="card-header-modern">
+                    <div class="card-title-group">
+                        <i class="bi bi-heart-pulse card-icon"></i>
+                        <div>
+                            <h3 class="card-title">Health Details</h3>
+                            <p class="card-subtitle">Component status breakdown</p>
+                        </div>
+                    </div>
+                    <button class="btn-icon" onclick="refreshHealth()" title="Refresh Health">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+                <div class="card-body-modern">
+                    <div id="health-details-container" class="health-details-list">
+                        <div class="health-detail-item">
+                            <div class="detail-header">
+                                <span class="detail-name">Database</span>
+                                <span class="detail-badge badge-success">OK</span>
+                            </div>
+                            <p class="detail-description">{{ health_data.database.message }}</p>
+                        </div>
+                        <div class="health-detail-item">
+                            <div class="detail-header">
+                                <span class="detail-name">Disk Space</span>
+                                <span class="detail-badge badge-{% if health_data.disk.status == 'ok' %}success{% elif health_data.disk.status == 'warning' %}warning{% else %}error{% endif %}">
+                                    {{ health_data.disk.status|upper }}
+                                </span>
+                            </div>
+                            <p class="detail-description">
+                                {{ health_data.disk.used_percent|default:"0" }}% used • {{ health_data.disk.free_gb|default:"0" }} GB free
+                            </p>
+                            <div class="progress-bar-small">
+                                <div class="progress-fill-small" style="width: {{ health_data.disk.used_percent|default:0 }}%; background: {% if health_data.disk.used_percent > 90 %}#ef4444{% elif health_data.disk.used_percent > 75 %}#f59e0b{% else %}#10b981{% endif %};"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Logs -->
+            <div class="card-modern card-error">
+                <div class="card-header-modern">
+                    <div class="card-title-group">
+                        <i class="bi bi-exclamation-octagon card-icon"></i>
+                        <div>
+                            <h3 class="card-title">Error Logs</h3>
+                            <p class="card-subtitle">Critical issues and warnings</p>
+                        </div>
+                    </div>
+                    <button class="btn-icon" onclick="loadLogs('error')" title="Refresh">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+                <div class="card-body-modern">
+                    <div id="error-logs-container" class="log-viewer log-viewer-error">
+                        <div class="loading-state">
+                            <div class="spinner"></div>
+                            <p>Loading error logs...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database Backups -->
+            <div class="card-modern">
+                <div class="card-header-modern">
+                    <div class="card-title-group">
+                        <i class="bi bi-database-fill card-icon"></i>
+                        <div>
+                            <h3 class="card-title">Database Backups</h3>
+                            <p class="card-subtitle">Data protection and recovery</p>
+                        </div>
+                    </div>
+                    <button class="btn-secondary" onclick="createBackup()">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Create Backup</span>
+                    </button>
+                </div>
+                <div class="card-body-modern">
+                    <div id="backups-container" class="backups-list">
+                        <div class="loading-state">
+                            <div class="spinner"></div>
+                            <p>Loading backups...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Performance Metrics Section -->
+    <div class="card-modern metrics-section">
+        <div class="card-header-modern">
+            <div class="card-title-group">
+                <i class="bi bi-graph-up-arrow card-icon"></i>
+                <div>
+                    <h3 class="card-title">Performance Metrics</h3>
+                    <p class="card-subtitle">System statistics and analytics</p>
+                </div>
+            </div>
+        </div>
+        <div class="card-body-modern">
+            <div class="metrics-grid">
+                <div class="metric-item">
+                    <div class="metric-icon-wrapper bg-success">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <div class="metric-content-wrapper">
+                        <div class="metric-value">{{ log_stats.app_log_lines|default:0 }}</div>
+                        <div class="metric-label">Total Log Entries</div>
+                        <div class="metric-detail">{{ log_stats.app_log_size|default:0 }} KB</div>
+                    </div>
+                </div>
+                
+                <div class="metric-item">
+                    <div class="metric-icon-wrapper bg-error">
+                        <i class="bi bi-x-circle"></i>
+                    </div>
+                    <div class="metric-content-wrapper">
+                        <div class="metric-value">{{ log_stats.error_log_lines|default:0 }}</div>
+                        <div class="metric-label">Total Errors</div>
+                        <div class="metric-detail">{{ log_stats.error_log_size|default:0 }} KB</div>
+                    </div>
+                </div>
+                
+                <div class="metric-item">
+                    <div class="metric-icon-wrapper bg-warning">
+                        <i class="bi bi-hourglass-split"></i>
+                    </div>
+                    <div class="metric-content-wrapper">
+                        <div class="metric-value">{{ slow_requests_today|default:0 }}</div>
+                        <div class="metric-label">Slow Requests</div>
+                        <div class="metric-detail">> 1 second threshold</div>
+                    </div>
+                </div>
+                
+                <div class="metric-item">
+                    <div class="metric-icon-wrapper bg-info">
+                        <i class="bi bi-download"></i>
+                    </div>
+                    <div class="metric-content-wrapper">
+                        <div class="metric-value">{{ backup_count|default:0 }}</div>
+                        <div class="metric-label">Total Backups</div>
+                        <div class="metric-detail">{% if latest_backup %}{{ latest_backup.size_mb }} MB latest{% else %}No backups{% endif %}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+/* Professional System Status Styles */
+.system-status-container {
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 30px 20px 60px;
+}
+
+/* Header Styles */
+.status-header {
+    margin-bottom: 40px;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 30px;
+}
+
+.title-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, rgba(0, 210, 255, 0.15), rgba(112, 0, 255, 0.15));
+    border: 1px solid rgba(0, 210, 255, 0.3);
+    border-radius: 20px;
+    color: #00d2ff;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+}
+
+.main-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 42px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 8px 0;
+    background: linear-gradient(135deg, #ffffff, rgba(255,255,255,0.8));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subtitle {
+    color: rgba(255,255,255,0.6);
+    font-size: 15px;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.btn-primary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #00d2ff, #7000ff);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 210, 255, 0.4);
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 20px;
+    color: #10b981;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Health Overview Grid */
+.health-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.health-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 24px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.health-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, currentColor, transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.health-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255,255,255,0.15);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+}
+
+.health-card:hover::before {
+    opacity: 1;
+}
+
+.health-card-primary::before { color: #3b82f6; }
+.health-card-warning::before { color: #f59e0b; }
+.health-card-info::before { color: #06b6d4; }
+.health-card-success::before { color: #10b981; }
+.health-card-performance::before { color: #f59e0b; }
+.health-card-overall::before { color: #10b981; }
+
+.health-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.health-icon-wrapper {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.health-icon-wrapper.status-success {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.health-icon-wrapper.status-error {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.health-icon-wrapper.status-warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.health-icon-wrapper.status-info {
+    background: rgba(6, 182, 212, 0.15);
+    color: #06b6d4;
+    border: 1px solid rgba(6, 182, 212, 0.3);
+}
+
+.health-status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.health-status-badge.status-success {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.health-status-badge.status-error {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.health-status-badge.status-warning {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.health-status-badge.status-info {
+    background: rgba(6, 182, 212, 0.2);
+    color: #06b6d4;
+    border: 1px solid rgba(6, 182, 212, 0.3);
+}
+
+.health-card-body {
+    flex: 1;
+}
+
+.health-metric {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 8px 0;
+    font-family: 'Syne', sans-serif;
+}
+
+.health-description {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    margin: 0 0 16px 0;
+    line-height: 1.5;
+}
+
+.progress-container {
+    margin: 16px 0;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.health-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.health-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+}
+
+.health-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+}
+
+/* Content Grid */
+.content-grid {
+    display: grid;
+    grid-template-columns: 1.8fr 1fr;
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.content-column {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+/* Modern Card Styles */
+.card-modern {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.card-modern:hover {
+    border-color: rgba(255,255,255,0.12);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+}
+
+.card-error {
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.card-header-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.02);
+}
+
+.card-title-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.card-icon {
+    font-size: 24px;
+    color: #00d2ff;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 210, 255, 0.1);
+    border-radius: 10px;
+}
+
+.card-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+    font-family: 'Syne', sans-serif;
+}
+
+.card-subtitle {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    margin: 4px 0 0 0;
+}
+
+.card-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filter-select {
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.filter-select:hover {
+    border-color: rgba(0, 210, 255, 0.3);
+    background: rgba(255,255,255,0.08);
+}
+
+.filter-select-small {
+    padding: 6px 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: rgba(255,255,255,0.7);
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 16px;
+}
+
+.btn-icon:hover {
+    background: rgba(0, 210, 255, 0.1);
+    border-color: #00d2ff;
+    color: #00d2ff;
+}
+
+.btn-secondary {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: rgba(0, 210, 255, 0.1);
+    border: 1px solid rgba(0, 210, 255, 0.3);
+    border-radius: 8px;
+    color: #00d2ff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-secondary:hover {
+    background: rgba(0, 210, 255, 0.2);
+    border-color: #00d2ff;
+}
+
+.card-body-modern {
+    padding: 24px;
+}
+
+/* Activities Timeline */
+.activities-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    border-left: 3px solid transparent;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.activity-item:hover {
+    background: rgba(255,255,255,0.06);
+    border-left-color: #00d2ff;
+    transform: translateX(4px);
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 6px 0;
+}
+
+.activity-details {
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    margin: 0 0 4px 0;
+}
+
+.activity-time {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+}
+
+/* Log Viewer */
+.log-viewer {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 16px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    line-height: 1.8;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.log-viewer-error {
+    background: rgba(239, 68, 68, 0.05);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.log-line {
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.02);
+    word-break: break-all;
+}
+
+.log-line.error {
+    color: #ef4444;
+}
+
+.log-line.warning {
+    color: #f59e0b;
+}
+
+.log-line.info {
+    color: #06b6d4;
+}
+
+.log-line.success {
+    color: #10b981;
+}
+
+/* Health Details */
+.health-details-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.health-detail-item {
+    padding: 16px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    border-left: 3px solid rgba(255,255,255,0.1);
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.detail-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+    text-transform: capitalize;
+}
+
+.detail-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-success {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-warning {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-error {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.detail-description {
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    margin: 0 0 8px 0;
+}
+
+.progress-bar-small {
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.progress-fill-small {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+}
+
+/* Backups List */
+.backups-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.backup-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.3s;
+}
+
+.backup-item:hover {
+    border-color: rgba(0, 210, 255, 0.3);
+    background: rgba(255,255,255,0.06);
+}
+
+.backup-info {
+    flex: 1;
+}
+
+.backup-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 6px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.backup-meta {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+}
+
+.backup-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* Metrics Section */
+.metrics-section {
+    margin-top: 30px;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+}
+
+.metric-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.3s;
+}
+
+.metric-item:hover {
+    border-color: rgba(0, 210, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.metric-icon-wrapper {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.bg-success {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.bg-error {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.bg-warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.bg-info {
+    background: rgba(6, 182, 212, 0.15);
+    color: #06b6d4;
+    border: 1px solid rgba(6, 182, 212, 0.3);
+}
+
+.metric-content-wrapper {
+    flex: 1;
+}
+
+.metric-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    margin-bottom: 4px;
+}
+
+.metric-label {
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 4px;
+}
+
+.metric-detail {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+}
+
+/* Loading States */
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: rgba(255,255,255,0.5);
+}
+
+.spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(255,255,255,0.1);
+    border-top-color: #00d2ff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 12px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: rgba(255,255,255,0.5);
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    display: block;
+    opacity: 0.3;
+}
+
+/* Responsive */
+@media (max-width: 1400px) {
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .health-overview-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .header-content {
+        flex-direction: column;
+    }
+    
+    .main-title {
+        font-size: 32px;
+    }
+}
+</style>
+
+<script>
+    // Get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Refresh Health Check
+    function refreshHealth() {
+        fetch('/health/')
+            .then(response => response.json())
+            .then(data => {
+                updateHealthDisplay(data);
+                const now = new Date();
+                document.getElementById('last-check').textContent = 'Last checked: ' + now.toLocaleTimeString();
+            })
+            .catch(error => {
+                console.error('Health check error:', error);
+            });
+    }
+
+    function updateHealthDisplay(data) {
+        const container = document.getElementById('health-details-container');
+        let html = '<div class="health-details-list">';
+        
+        for (const [key, value] of Object.entries(data.checks)) {
+            const statusClass = value.status === 'ok' ? 'success' : value.status === 'warning' ? 'warning' : 'error';
+            html += `
+                <div class="health-detail-item">
+                    <div class="detail-header">
+                        <span class="detail-name">${key}</span>
+                        <span class="detail-badge badge-${statusClass}">${value.status.toUpperCase()}</span>
+                    </div>
+                    ${value.error ? `<p class="detail-description" style="color: #ef4444;">${value.error}</p>` : ''}
+                    ${value.used_percent ? `
+                        <p class="detail-description">
+                            ${value.used_percent}% used • ${value.free_gb} GB free
+                        </p>
+                        <div class="progress-bar-small">
+                            <div class="progress-fill-small" style="width: ${value.used_percent}%; background: ${value.used_percent > 90 ? '#ef4444' : value.used_percent > 75 ? '#f59e0b' : '#10b981'};"></div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+        
+        html += '</div>';
+        container.innerHTML = html;
+        
+        // Update overall status
+        const overallStatus = data.status === 'healthy' ? 'Healthy' : 'Unhealthy';
+        const statusColor = data.status === 'healthy' ? '#10b981' : '#ef4444';
+        const statusClass = data.status === 'healthy' ? 'success' : 'error';
+        
+        document.getElementById('overall-status').textContent = overallStatus;
+        document.getElementById('overall-status').style.color = statusColor;
+        
+        const overallIcon = document.getElementById('overall-icon');
+        const overallBadge = document.getElementById('overall-badge');
+        overallIcon.className = `health-icon-wrapper status-${statusClass}`;
+        overallBadge.className = `health-status-badge status-${statusClass}`;
+        overallBadge.textContent = overallStatus;
+    }
+
+    // Load Activities
+    function loadActivities() {
+        const filter = document.getElementById('activity-filter')?.value || 'all';
+        const activities = [];
+        
+        {% for payment in recent_payments %}
+        activities.push({
+            type: 'payment',
+            icon: 'bi-check-circle-fill',
+            color: '#10b981',
+            bgColor: 'rgba(16, 185, 129, 0.15)',
+            borderColor: 'rgba(16, 185, 129, 0.3)',
+            title: 'Payment Received',
+            details: 'Invoice {{ payment.invoice_id }} • ${{ payment.amount }}',
+            time: '{{ payment.created_at|timesince }} ago',
+            url: '/invoice/{{ payment.invoice_id }}/'
+        });
+        {% endfor %}
+        
+        {% for invoice in recent_invoices|slice:":5" %}
+        activities.push({
+            type: 'invoice',
+            icon: 'bi-receipt',
+            color: '#3b82f6',
+            bgColor: 'rgba(59, 130, 246, 0.15)',
+            borderColor: 'rgba(59, 130, 246, 0.3)',
+            title: 'New Invoice',
+            details: '{{ invoice.invoice_id }} • ${{ invoice.amount }} • {{ invoice.status }}',
+            time: '{{ invoice.created_at|timesince }} ago',
+            url: '/invoice/{{ invoice.invoice_id }}/'
+        });
+        {% endfor %}
+        
+        displayActivities(activities, filter);
+    }
+
+    function displayActivities(activities, filter) {
+        const container = document.getElementById('activities-list');
+        
+        if (activities.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <div>No recent activities</div>
+                </div>
+            `;
+            return;
+        }
+        
+        let filtered = filter === 'all' ? activities : activities.filter(a => a.type === filter);
+        
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="bi bi-funnel"></i>
+                    <div>No ${filter} activities found</div>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        filtered.forEach(activity => {
+            html += `
+                <div class="activity-item" onclick="window.location.href='${activity.url}'">
+                    <div class="activity-icon" style="background: ${activity.bgColor}; border: 1px solid ${activity.borderColor}; color: ${activity.color};">
+                        <i class="bi ${activity.icon}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">${activity.title}</div>
+                        <div class="activity-details">${activity.details}</div>
+                        <div class="activity-time">${activity.time}</div>
+                    </div>
+                    <i class="bi bi-chevron-right" style="color: rgba(255,255,255,0.3); font-size: 14px; margin-top: 4px;"></i>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+    }
+
+    function filterActivities() {
+        loadActivities();
+    }
+
+    // Load Logs
+    function loadLogs(type) {
+        const lines = document.getElementById('log-lines')?.value || 20;
+        
+        fetch('/dashboard/system-status/logs/')
+            .then(response => response.json())
+            .then(data => {
+                const logContent = type === 'error' ? data.error_logs : data.app_logs;
+                const container = type === 'error' ? document.getElementById('error-logs-container') : document.getElementById('app-logs-container');
+                
+                if (!logContent || logContent === 'Log file not found') {
+                    container.innerHTML = `<div class="empty-state"><i class="bi bi-file-x"></i><div>No ${type} logs available</div></div>`;
+                    return;
+                }
+                
+                const logLines = logContent.split('\n').slice(-parseInt(lines));
+                let html = '';
+                
+                logLines.forEach(line => {
+                    if (!line.trim()) return;
+                    
+                    let lineClass = 'info';
+                    if (line.includes('ERROR') || line.includes('error')) lineClass = 'error';
+                    else if (line.includes('WARNING') || line.includes('warning')) lineClass = 'warning';
+                    else if (line.includes('SUCCESS') || line.includes('success')) lineClass = 'success';
+                    
+                    html += `<div class="log-line ${lineClass}">${escapeHtml(line)}</div>`;
+                });
+                
+                container.innerHTML = html || '<div class="empty-state">No log entries</div>';
+            })
+            .catch(error => {
+                const container = type === 'error' ? document.getElementById('error-logs-container') : document.getElementById('app-logs-container');
+                container.innerHTML = `<div style="color: #ef4444; padding: 20px; text-align: center;">Error loading logs: ${error.message}</div>`;
+            });
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Load Backups
+    function loadBackups() {
+        fetch('/dashboard/system-status/backups/')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('backups-container');
+                
+                if (!data.backups || data.backups.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="bi bi-archive"></i>
+                            <div>No backups found</div>
+                            <div style="margin-top: 10px; font-size: 12px;">Create your first backup to protect your data</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = '';
+                data.backups.slice(0, 5).forEach(backup => {
+                    html += `
+                        <div class="backup-item">
+                            <div class="backup-info">
+                                <div class="backup-name">
+                                    <i class="bi bi-file-earmark-zip" style="color: #9b59b6;"></i>
+                                    ${backup.filename}
+                                </div>
+                                <div class="backup-meta">${backup.size} MB • ${backup.date}</div>
+                            </div>
+                            <div class="backup-actions">
+                                <a href="/dashboard/system-status/backups/download/${backup.filename}/" class="btn-icon" title="Download">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                if (data.backups.length > 5) {
+                    html += `<div style="text-align: center; padding: 10px; color: rgba(255,255,255,0.5); font-size: 12px;">+ ${data.backups.length - 5} more backups</div>`;
+                }
+                
+                container.innerHTML = html;
+            })
+            .catch(error => {
+                document.getElementById('backups-container').innerHTML = `<div style="color: #ef4444; padding: 20px; text-align: center;">Error loading backups</div>`;
+            });
+    }
+
+    // Create Backup
+    function createBackup() {
+        if (!confirm('Create a new database backup? This may take a few seconds.')) return;
+        
+        const btn = event.target.closest('button');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> <span>Creating...</span>';
+        btn.disabled = true;
+        
+        fetch('/dashboard/system-status/backups/create/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const container = document.getElementById('backups-container');
+                container.innerHTML = `
+                    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 16px; border-radius: 12px; color: #10b981; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+                        <i class="bi bi-check-circle"></i>
+                        <span>Backup created successfully!</span>
+                    </div>
+                ` + container.innerHTML;
+                
+                setTimeout(() => {
+                    loadBackups();
+                }, 1000);
+            } else {
+                alert('Backup failed: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            alert('Error creating backup: ' + error.message);
+        })
+        .finally(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    }
+
+    // Refresh All
+    function refreshAll() {
+        refreshHealth();
+        loadActivities();
+        loadLogs('app');
+        loadLogs('error');
+        loadBackups();
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        refreshHealth();
+        loadActivities();
+        loadLogs('app');
+        loadLogs('error');
+        loadBackups();
+        
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            refreshHealth();
+            loadActivities();
+        }, 30000);
+        
+        // Update last check time every minute
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('last-check').textContent = 'Last checked: ' + now.toLocaleTimeString();
+        }, 60000);
+    });
+</script>
+{% endblock %}

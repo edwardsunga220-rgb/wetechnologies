@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice #{{ invoice.invoice_id }}</title>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        body { font-family: 'Helvetica', sans-serif; background: #f4f4f4; padding: 40px; color: #333; }
+        
+        .invoice-box {
+            max-width: 800px; margin: 0 auto; padding: 40px;
+            border: 1px solid #eee; background: white;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            border-radius: 10px; position: relative;
+        }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        .logo { font-size: 28px; font-weight: bold; color: #1a1a2e; }
+        .logo span { color: #00d2ff; }
+        
+        .status { padding: 8px 15px; border-radius: 5px; font-weight: bold; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; }
+        .paid { color: #2ecc71; border: 2px solid #2ecc71; background: rgba(46, 204, 113, 0.05); }
+        .unpaid { color: #e74c3c; border: 2px solid #e74c3c; background: rgba(231, 76, 60, 0.05); }
+        
+        table { width: 100%; line-height: inherit; text-align: left; border-collapse: collapse; margin-top: 20px; }
+        table td { padding: 15px; vertical-align: top; }
+        
+        table tr.heading td { background: #f9f9f9; border-bottom: 1px solid #eee; font-weight: bold; text-transform: uppercase; font-size: 12px; color: #555; }
+        table tr.item td { border-bottom: 1px solid #eee; }
+        table tr.total td:nth-child(2) { border-top: 2px solid #333; font-weight: bold; font-size: 20px; padding-top: 20px; }
+        
+        /* BUTTONS */
+        .download-btn {
+            display: block; width: 100%; padding: 18px; margin-top: 30px;
+            background: #2ecc71; color: white; text-align: center;
+            text-decoration: none; font-weight: bold; border-radius: 8px;
+            font-size: 16px; transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+        }
+        .download-btn:hover { background: #27ae60; transform: translateY(-2px); }
+
+        .pay-btn {
+            display: block; width: 100%; padding: 15px; margin-top: 10px;
+            color: white; text-align: center; border: none; cursor: pointer;
+            text-decoration: none; font-weight: bold; border-radius: 8px;
+            font-size: 15px; transition: 0.3s;
+        }
+        
+        .btn-pesapal { background: #00d2ff; box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3); }
+        .btn-pesapal:hover { background: #00b7ff; transform: translateY(-2px); }
+
+        .btn-azam { background: #e91e63; box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3); }
+        .btn-azam:hover { background: #c2185b; transform: translateY(-2px); }
+        
+        /* ALERT MESSAGES */
+        .alert { padding: 15px; margin-bottom: 20px; border-radius: 5px; font-size: 14px; text-align: center; }
+        .alert-error { background: #fee; color: #c00; border: 1px solid #fcc; }
+        .alert-success { background: #efe; color: #0c0; border: 1px solid #cfc; }
+
+        .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 20px; }
+
+        /* MODAL */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; }
+        .modal-card { background: white; padding: 30px; width: 400px; border-radius: 10px; position: relative; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #999; }
+        
+        input, select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+    <div class="invoice-box">
+        
+        <!-- ERROR/SUCCESS MESSAGES -->
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="header">
+            <div class="logo">We<span>Tech</span> Solutions</div>
+            <div class="status {% if invoice.status == 'Paid' %}paid{% else %}unpaid{% endif %}">
+                {{ invoice.status }}
+            </div>
+        </div>
+
+        <table>
+            <tr>
+                <td>
+                    <span style="color: #999; font-size: 12px; text-transform: uppercase;">Billed To</span><br>
+                    <strong>{{ invoice.client.name }}</strong><br>
+                    {{ invoice.client.contact_info }}
+                </td>
+                <td style="text-align: right;">
+                    <span style="color: #999; font-size: 12px; text-transform: uppercase;">Invoice Details</span><br>
+                    <strong>#{{ invoice.invoice_id }}</strong><br>
+                    {{ invoice.created_at|date:"M d, Y" }}
+                </td>
+            </tr>
+        </table>
+
+        <br>
+
+        <table>
+            <tr class="heading">
+                <td>Item Description</td>
+                <td style="text-align: right;">Price</td>
+            </tr>
+            <tr class="item">
+                <td>
+                    <strong>{{ invoice.product_name }}</strong><br>
+                    <span style="color: #666; font-size: 13px;">Full Source Code License & Documentation</span>
+                </td>
+                <td style="text-align: right;">${{ invoice.amount }}</td>
+            </tr>
+            <tr class="total">
+                <td></td>
+                <td style="text-align: right;">Total: ${{ invoice.amount }}</td>
+            </tr>
+        </table>
+
+        <!-- LOGIC: PAID vs UNPAID -->
+        {% if invoice.status == 'Paid' %}
+            <div style="margin-top: 40px; text-align: center;">
+                <p style="color: #27ae60; font-weight: bold; margin-bottom: 20px;">
+                    <i class="bi bi-check-circle-fill"></i> Payment Verified
+                </p>
+                
+                {% if invoice.product.source_file %}
+                    <a href="{{ invoice.product.source_file.url }}" class="download-btn" download>
+                        <i class="bi bi-cloud-download-fill" style="margin-right: 10px;"></i> Download Source Code (ZIP)
+                    </a>
+                    <p style="font-size: 12px; color: #999; margin-top: 10px;">Link expires in 24 hours.</p>
+                {% else %}
+                    <div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; font-size: 14px;">
+                        <strong>System Notice:</strong> The source file is being prepared. Please contact Admin/Support.
+                    </div>
+                {% endif %}
+            </div>
+        {% else %}
+            
+            <!-- PAYMENT BUTTONS AREA -->
+            <div style="margin-top: 40px; padding: 30px; background: #f8faff; border: 1px solid #eef2ff; border-radius: 10px; text-align: center;">
+                <h3 style="margin-top: 0; color: #333;">Complete Payment</h3>
+                <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
+                    Choose a secure payment method below.
+                </p>
+                
+                <!-- 1. PESAPAL (Redirects to Pesapal Payment Page) -->
+                <a href="{% url 'pay_with_pesapal' invoice.invoice_id %}" class="pay-btn btn-pesapal">
+                    <i class="bi bi-credit-card-2-front-fill"></i> Pay With Pesapal
+                </a>
+                
+                <!-- 2. AZAMPAY (Opens Modal) -->
+                <button onclick="document.getElementById('azamModal').style.display='flex'" class="pay-btn btn-azam">
+                    <i class="bi bi-phone-vibrate"></i> Pay With AzamPay (Mobile Push)
+                </button>
+                
+                <div style="margin-top: 20px; font-size: 20px; color: #ccc; display: flex; justify-content: center; gap: 15px;">
+                    <i class="bi bi-phone"></i>
+                    <i class="bi bi-credit-card"></i>
+                    <i class="bi bi-shield-lock"></i>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="footer">
+            WeTech Technologies &copy; {% now "Y" %}. Thank you for your business.
+        </div>
+
+    </div>
+
+    <!-- AZAMPAY MODAL POPUP -->
+    <div id="azamModal" class="modal-overlay">
+        <div class="modal-card">
+            <span class="close-modal" onclick="document.getElementById('azamModal').style.display='none'">&times;</span>
+            
+            <h3 style="margin-top: 0; color: #e91e63;">Mobile Checkout</h3>
+            <p style="font-size: 13px; color: #666; margin-bottom: 20px;">Enter YOUR mobile number (the payer). A USSD popup will be sent to this phone. Enter PIN to authorize payment.</p>
+            
+            <form action="{% url 'pay_with_azampay' invoice.invoice_id %}" method="POST">
+                {% csrf_token %}
+                
+                <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px;">Your Phone Number (Payer)</label>
+                <input type="text" name="phone_number" value="{{ invoice.client.contact_info }}" placeholder="07xxxxxxxx or 2557xxxxxxxx" required>
+                
+                <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px;">Select Network</label>
+                <select name="provider" required>
+                    <option value="Tigo">Tigo Pesa</option>
+                    <option value="Airtel">Airtel Money</option>
+                    <option value="Halopesa">HaloPesa</option>
+                    <option value="AzamPesa">AzamPesa</option>
+                </select>
+                
+                <button type="submit" class="pay-btn btn-azam" style="width: 100%; margin-top: 10px;">
+                    Request Payment
+                </button>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

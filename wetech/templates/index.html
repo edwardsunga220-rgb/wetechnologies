@@ -1,0 +1,803 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<!-- 1. HERO SECTION (Full Width & Pulled Up) -->
+<section class="landing-hero full-width-breakout" id="hero-section">
+    <div class="hero-bg-overlay"></div>
+    <div class="hero-dark-overlay"></div>
+    <div class="hero-inner-container">
+        
+        <!-- Centered Hero Content -->
+        <div class="hero-content-centered">
+            <div class="hero-badge">
+                <i class="bi bi-rocket-takeoff-fill"></i> Engineering Excellence
+            </div>
+            
+            <h1 class="hero-title full-width-title">
+                <span class="title-line">We Build Systems That </span>
+                <span class="text-gradient typed-text" id="typed-text"></span>
+                <span class="typed-cursor">|</span>
+            </h1>
+            
+            <p class="hero-subtitle">
+                WeTech architects enterprise-grade <strong>Django Backends</strong> and fluid <strong>Mobile Applications</strong> for startups that refuse to compromise on performance.
+            </p>
+            
+            <div class="hero-actions">
+                <a href="{% url 'marketplace' %}" class="btn-primary">Browse Systems</a>
+                <a href="{% url 'contact' %}" class="btn-secondary">Start Custom Project</a>
+            </div>
+
+            <div class="hero-stats">
+                <div class="stat-box">
+                    <span class="metric-value">150</span><span>+</span>
+                    <span class="stat-label">Projects</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-box">
+                    <span class="metric-value">99.9</span><span>%</span>
+                    <span class="stat-label">Uptime</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-box">
+                    <span class="metric-value">10</span><span>M+</span>
+                    <span class="stat-label">Requests</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 2. HOW WETECH WORKS -->
+<section class="how-wetech-works">
+    <div class="section-header">
+        <h2 class="section-title">How <span class="text-gradient">WeTech</span> Works</h2>
+        <p class="section-subtitle">A streamlined process designed for speed, quality, and scale.</p>
+    </div>
+
+    <div class="workflow-modern">
+        <!-- Step 1 -->
+        <div class="work-card">
+            <div class="card-header">
+                <div class="card-number">01</div>
+                <div class="card-icon-wrapper">
+                    <div class="card-icon">
+                        <i class="bi bi-search"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <h3>Discovery & Planning</h3>
+                <p>We start by understanding your business goals, user needs, and technical requirements. We map out the architecture, database schema, and API structure before writing a single line of code.</p>
+            </div>
+            <div class="card-footer">
+                <div class="feature-badge"><i class="bi bi-check-circle-fill"></i> Requirements Analysis</div>
+                <div class="feature-badge"><i class="bi bi-check-circle-fill"></i> Architecture Design</div>
+                <div class="feature-badge"><i class="bi bi-check-circle-fill"></i> Technical Roadmap</div>
+            </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="work-card">
+            <div class="card-header">
+                <div class="card-number">02</div>
+                <div class="card-icon-wrapper">
+                    <div class="card-icon">
+                        <i class="bi bi-code-slash"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <h3>Agile Development</h3>
+                <p>We work in 2-week sprints using Django and Flutter. You get a demoable build every 14 days, allowing for rapid iteration and feature adjustments based on feedback.</p>
+            </div>
+            <div class="card-footer">
+                <div class="feature-badge"><i class="bi bi-check-circle-fill"></i> 2-Week Sprints</div>
+                <div class="feature-badge"><i class="bi bi-check-circle-fill"></i> Daily Standups</div>
+                <div class="feature-badge"><i class="bi bi-check-circle-fill"></i> Continuous Deployment</div>
+            </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="work-card">
+            <div class="card-header">
+                <div class="card-number">03</div>
+                <div class="card-icon-wrapper">
+                    <div class="card-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <h3>Testing & Hardening</h3>
+                <p>Every feature undergoes rigorous testing including security audits, load testing (10k+ concurrent users), and penetration testing. We ensure zero vulnerabilities before launch.</p>
+            </div>
+            <div class="card-footer">
+                <div class="feature-badge"><i class="bi bi-check-circle-fill"></i> Security Audits</div>
+                <div class="feature-badge"><i class="bi bi-check-circle-fill"></i> Load Testing</div>
+                <div class="feature-badge"><i class="bi bi-check-circle-fill"></i> Code Reviews</div>
+            </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="work-card">
+            <div class="card-header">
+                <div class="card-number">04</div>
+                <div class="card-icon-wrapper">
+                    <div class="card-icon">
+                        <i class="bi bi-rocket-takeoff"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <h3>Launch & Scale</h3>
+                <p>We deploy to AWS/Azure with auto-scaling infrastructure. We provide complete documentation and can either manage the infrastructure or hand it over to your team.</p>
+            </div>
+            <div class="card-footer">
+                <div class="feature-badge"><i class="bi bi-check-circle-fill"></i> Cloud Deployment</div>
+                <div class="feature-badge"><i class="bi bi-check-circle-fill"></i> Auto-Scaling</div>
+                <div class="feature-badge"><i class="bi bi-check-circle-fill"></i> Full Documentation</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="workflow-cta">
+        <p>Ready to start your project?</p>
+        <a href="{% url 'contact' %}" class="btn-primary">Get Started <i class="bi bi-arrow-right"></i></a>
+    </div>
+</section>
+
+<!-- 4. LATEST MARKET RELEASES (Dynamic Section) -->
+<!-- This pulls data from your Views.py -->
+<section class="section-spacing">
+    <div class="section-header">
+        <h2 class="section-title">New on the <span class="text-gradient">Market</span></h2>
+        <p class="section-subtitle">Ready-made source code available for instant deployment.</p>
+    </div>
+    
+    <div class="industry-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+        {% for product in recent_products %}
+        <div class="glass-card" style="padding: 20px; border-radius: 20px; overflow: hidden; transition: 0.3s; display: flex; flex-direction: column;">
+            <div style="height: 180px; overflow: hidden; border-radius: 12px; margin-bottom: 20px;">
+                <img src="{{ product.image.url }}" style="width: 100%; height: 100%; object-fit: cover; transition: 0.5s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+            </div>
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="font-family: 'Syne'; font-size: 20px; color: #fff; margin: 0;">{{ product.title }}</h3>
+                    <span style="color: #00d2ff; font-weight: bold;">${{ product.price }}</span>
+                </div>
+                <p style="color: rgba(255,255,255,0.6); font-size: 14px; margin-bottom: 20px;">{{ product.description|truncatewords:15 }}</p>
+                <a href="{% url 'marketplace' %}" class="btn-primary" style="width: 100%; text-align: center; display: block;">View Details</a>
+            </div>
+        </div>
+        {% empty %}
+        <p style="text-align: center; color: #666; grid-column: 1/-1;">Checking for new updates...</p>
+        {% endfor %}
+    </div>
+    <div style="text-align: center; margin-top: 40px;">
+        <a href="{% url 'marketplace' %}" style="color: #00d2ff; text-decoration: none;">View All Products <i class="bi bi-arrow-right"></i></a>
+    </div>
+</section>
+
+<!-- 5. THE PROCESS -->
+<section class="process-section">
+    <div class="section-header">
+        <h2 class="section-title">From Concept to <span class="text-gradient">Code</span></h2>
+        <p class="section-subtitle">Our military-grade development lifecycle.</p>
+    </div>
+
+    <div class="timeline-container">
+        <div class="timeline-line"></div>
+        
+        <div class="timeline-step">
+            <div class="step-marker"><div class="spinner-ring"></div><i class="bi bi-diagram-3-fill"></i></div>
+            <div class="step-content glass-card">
+                <h3>System Architecture</h3>
+                <p>We don't just start coding. We map out database schemas, API endpoints, and server logic to ensure scalability from Day 1.</p>
+            </div>
+        </div>
+
+        <div class="timeline-step reverse">
+            <div class="step-marker"><div class="spinner-ring"></div><i class="bi bi-code-slash"></i></div>
+            <div class="step-content glass-card">
+                <h3>Agile Development</h3>
+                <p>2-week sprints. We use Django for rapid backend logic and Flutter for simultaneous iOS/Android deployment.</p>
+            </div>
+        </div>
+
+        <div class="timeline-step">
+            <div class="step-marker"><div class="spinner-ring"></div><i class="bi bi-shield-check"></i></div>
+            <div class="step-content glass-card">
+                <h3>DevOps & Security</h3>
+                <p>Automated CI/CD pipelines. Dockerized containers. We ensure your code is bulletproof before launch.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 6. INDUSTRIES -->
+<section class="industries-section">
+    <div class="section-header">
+        <h2 class="section-title">Industries We <span class="text-gradient">Dominate</span></h2>
+    </div>
+    <div class="industry-grid">
+        <div class="industry-card-new" style="background-image: url('{% static "images/img/fintech.jpg" %}');">
+            <div class="card-overlay"></div>
+            <div class="card-content"><i class="bi bi-bank2"></i><h4>FinTech & Banking</h4><p>Secure payment gateways and real-time ledgers.</p></div>
+        </div>
+        <div class="industry-card-new" style="background-image: url('{% static "images/img/logistic.jpg" %}');">
+            <div class="card-overlay"></div>
+            <div class="card-content"><i class="bi bi-truck-front-fill"></i><h4>Logistics</h4><p>Real-time GPS tracking and fleet management.</p></div>
+        </div>
+        <div class="industry-card-new" style="background-image: url('{% static "images/img/health1.jpg" %}');">
+            <div class="card-overlay"></div>
+            <div class="card-content"><i class="bi bi-heart-pulse-fill"></i><h4>HealthTech</h4><p>HIPAA-compliant patient portals.</p></div>
+        </div>
+        <div class="industry-card-new" style="background-image: url('{% static "images/img/ecommerce.jpg" %}');">
+            <div class="card-overlay"></div>
+            <div class="card-content"><i class="bi bi-cart-check-fill"></i><h4>E-Commerce</h4><p>High-concurrency marketplaces.</p></div>
+        </div>
+    </div>
+</section>
+
+<!-- 7. FAQ -->
+<section class="faq-section">
+    <br><br><br>
+    <div class="section-header"><h2 class="section-title">Technical <span class="text-gradient">FAQ</span></h2></div>
+    <div class="faq-container">
+        <div class="faq-item glass-card" onclick="toggleFaq(this)">
+            <div class="faq-question"><h3>Why use Django?</h3><span class="faq-toggle"><i class="bi bi-plus-lg"></i></span></div>
+            <div class="faq-answer"><p>Django offers "batteries-included" security and rapid scalability. It powers giants like Instagram.</p></div>
+        </div>
+        <div class="faq-item glass-card" onclick="toggleFaq(this)">
+            <div class="faq-question"><h3>Native vs Hybrid Apps?</h3><span class="faq-toggle"><i class="bi bi-plus-lg"></i></span></div>
+            <div class="faq-answer"><p>We use Flutter to deploy to both iOS and Android from one codebase without sacrificing native performance.</p></div>
+        </div>
+    </div>
+</section>
+
+<!-- 8. FINAL CTA -->
+<section class="final-cta">
+    <div class="cta-content">
+        <h2>Ready to build?</h2>
+        <p>Stop wrestling with legacy code. Start building your future.</p><br>
+        <div class="cta-buttons">
+            <a href="{% url 'contact' %}" class="btn-primary">Schedule Consultation</a>
+        </div>
+    </div>
+    <div class="cta-bg-glow"></div>
+</section>
+
+<!-- PAGE SPECIFIC CSS -->
+<style>
+   /* HERO FIXES */
+    .full-width-breakout {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        margin-top: -140px; 
+        padding-top: 200px; 
+        padding-bottom: 100px;
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        overflow: hidden;
+    }
+    
+    #hero-section {
+        background: linear-gradient(to right, rgba(10, 10, 18, 0.95) 0%, rgba(10, 10, 18, 0.4) 100%);
+    }
+    
+    .hero-bg-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        z-index: -2;
+        opacity: 1;
+        transition: opacity 0.6s ease-in-out;
+    }
+    
+    .hero-dark-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: -1;
+        pointer-events: none;
+    }
+    
+    .hero-inner-container { 
+        max-width: 1200px; 
+        margin: 0 auto; 
+        padding: 0 20px; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        justify-content: center;
+        position: relative; 
+        z-index: 1;
+        min-height: 80vh;
+    }
+    
+    .hero-content-centered {
+        width: 100%;
+        max-width: 900px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+    }
+    
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 20px;
+        background: rgba(0, 240, 255, 0.1);
+        border: 1px solid rgba(0, 240, 255, 0.3);
+        border-radius: 50px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--primary);
+        margin-bottom: 10px;
+    }
+    
+    .hero-title { 
+        font-family: 'Syne', sans-serif; 
+        font-size: 72px; 
+        line-height: 1.1; 
+        font-weight: 800; 
+        margin: 0;
+        color: white;
+        text-align: center;
+        width: 100%;
+    }
+    
+    .hero-title.full-width-title {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .title-line {
+        display: inline;
+        margin-right: 0;
+    }
+    
+    .typed-text { 
+        position: relative;
+        margin-left: 0;
+    }
+    
+    .hero-subtitle {
+        font-size: 18px;
+        color: rgba(255, 255, 255, 0.85);
+        line-height: 1.7;
+        max-width: 700px;
+        margin: 0;
+    }
+    .typed-cursor { 
+        display: inline-block;
+        margin-left: 4px;
+        color: var(--primary);
+        animation: blink 1s infinite;
+        font-weight: 300;
+    }
+    @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0; }
+    }
+    .hero-actions { 
+        display: flex; 
+        gap: 20px; 
+        margin: 0;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .hero-stats { 
+        display: flex; 
+        gap: 30px; 
+        background: rgba(10, 10, 20, 0.6); 
+        border: 1px solid rgba(255,255,255,0.1); 
+        padding: 20px 30px; 
+        border-radius: 20px; 
+        width: fit-content; 
+        margin: 0 auto;
+        -webkit-backdrop-filter: blur(10px); 
+        backdrop-filter: blur(10px); 
+    }
+    .stat-box { text-align: center; }
+    .metric-value { font-size: 24px; font-weight: 700; color: #fff; }
+    .stat-label { display: block; font-size: 11px; color: rgba(255, 255, 255, 0.6); text-transform: uppercase; margin-top: 5px; }
+    .stat-divider { width: 1px; height: 30px; background: rgba(255, 255, 255, 0.2); }
+
+
+    /* HOW WETECH WORKS - MODERN CARD STYLE */
+    .how-wetech-works {
+        margin-top: 40px;
+        padding: 80px 40px;
+        width: 100%;
+        background: linear-gradient(180deg, transparent, rgba(0, 240, 255, 0.02), transparent);
+    }
+
+    .how-wetech-works .section-header {
+        text-align: center;
+        margin-bottom: 70px;
+    }
+
+    .how-wetech-works .section-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 48px;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 15px;
+    }
+
+    .how-wetech-works .section-subtitle {
+        font-size: 18px;
+        color: rgba(255, 255, 255, 0.6);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .workflow-modern {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 35px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .work-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 32px;
+        padding: 0;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .work-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        opacity: 0;
+        transition: opacity 0.5s ease;
+    }
+
+    .work-card:hover {
+        transform: translateY(-10px);
+        border-color: rgba(0, 240, 255, 0.4);
+        background: rgba(255, 255, 255, 0.05);
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(0, 240, 255, 0.15);
+    }
+
+    .work-card:hover::before {
+        opacity: 1;
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 35px 40px 25px;
+        position: relative;
+    }
+
+    .card-number {
+        font-family: 'Syne', sans-serif;
+        font-size: 72px;
+        font-weight: 900;
+        background: linear-gradient(135deg, #00f0ff, #ff00d4);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        opacity: 0.2;
+        line-height: 1;
+    }
+
+    .card-icon-wrapper {
+        position: relative;
+    }
+
+    .card-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 22px;
+        background: linear-gradient(135deg, rgba(0, 240, 255, 0.15), rgba(255, 0, 212, 0.15));
+        border: 2px solid rgba(0, 240, 255, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        color: var(--primary);
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        z-index: 2;
+    }
+
+    .card-icon::after {
+        content: '';
+        position: absolute;
+        inset: -4px;
+        border-radius: 24px;
+        background: linear-gradient(135deg, rgba(0, 240, 255, 0.3), rgba(255, 0, 212, 0.3));
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        z-index: -1;
+        filter: blur(12px);
+    }
+
+    .work-card:hover .card-icon {
+        transform: scale(1.1) rotate(-5deg);
+        border-color: rgba(0, 240, 255, 0.6);
+        box-shadow: 0 0 30px rgba(0, 240, 255, 0.4);
+    }
+
+    .work-card:hover .card-icon::after {
+        opacity: 1;
+    }
+
+    .card-body {
+        padding: 0 40px 30px;
+        flex: 1;
+    }
+
+    .card-body h3 {
+        font-family: 'Syne', sans-serif;
+        font-size: 26px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 15px;
+        line-height: 1.3;
+    }
+
+    .card-body p {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 15px;
+        line-height: 1.7;
+        margin: 0;
+    }
+
+    .card-footer {
+        padding: 25px 40px 35px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .feature-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        background: rgba(0, 240, 255, 0.08);
+        border: 1px solid rgba(0, 240, 255, 0.2);
+        border-radius: 25px;
+        font-size: 13px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.85);
+        transition: all 0.3s ease;
+    }
+
+    .feature-badge i {
+        color: var(--primary);
+        font-size: 14px;
+    }
+
+    .work-card:hover .feature-badge {
+        background: rgba(0, 240, 255, 0.15);
+        border-color: rgba(0, 240, 255, 0.35);
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0, 240, 255, 0.2);
+    }
+
+
+    .workflow-cta {
+        text-align: center;
+        margin-top: 60px;
+        padding: 40px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+    }
+
+    .workflow-cta p {
+        font-size: 20px;
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 25px;
+        font-weight: 500;
+    }
+
+    .workflow-cta .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 16px 32px;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .workflow-cta .btn-primary i {
+        transition: transform 0.3s ease;
+    }
+
+    .workflow-cta .btn-primary:hover i {
+        transform: translateX(5px);
+    }
+
+    /* TIMELINE */
+    .process-section { margin-top: 35px; }
+    .timeline-container { position: relative; max-width: 800px; margin: 30px auto 0; }
+    .timeline-line { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, var(--primary), var(--secondary)); transform: translateX(-50%); z-index: 0; }
+    .timeline-step { display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; position: relative; z-index: 1; }
+    .timeline-step.reverse { flex-direction: row-reverse; }
+    .step-marker { width: 80px; height: 80px; background: var(--dark-1); border-radius: 50%; display: flex; justify-content: center; align-items: center; position: absolute; left: 50%; transform: translateX(-50%); font-size: 32px; color: #fff; z-index: 5; border: 5px solid var(--dark-1); }
+    .step-content { width: 42%; padding: 30px; }
+    .step-content h3 { font-family: 'Syne'; font-size: 22px; color: #fff; margin-bottom: 10px; }
+    .spinner-ring { position: absolute; inset: -5px; border-radius: 50%; border: 2px solid transparent; border-top-color: var(--primary); border-right-color: var(--secondary); animation: spin 3s linear infinite; }
+
+    /* INDUSTRY CARDS */
+    .industry-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; margin-top: 40px; }
+    .industry-card-new { height: 350px; position: relative; border-radius: 20px; overflow: hidden; background-size: cover; background-position: center; transition: 0.4s; border: 1px solid rgba(255, 255, 255, 0.1); }
+    .card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, #0a0a12 30%, rgba(10,10,18,0.6)); transition: 0.3s; }
+    .card-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 30px; text-align: center; }
+    .card-content i { font-size: 48px; color: var(--primary); margin-bottom: 20px; transition: 0.3s; }
+    .card-content h4 { font-family: 'Syne'; font-size: 24px; color: #fff; margin-bottom: 15px; }
+    .card-content p { font-size: 14px; color: rgba(255, 255, 255, 0.7); line-height: 1.6; }
+    .industry-card-new:hover { transform: translateY(-10px); border-color: var(--primary); }
+    .industry-card-new:hover i { transform: scale(1.1); text-shadow: 0 0 10px var(--primary); }
+
+    /* ANIMATIONS */
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    /* RESPONSIVE */
+    @media (max-width: 1100px) { 
+        .industry-grid { grid-template-columns: 1fr 1fr; } 
+    }
+    
+    @media (max-width: 768px) { 
+        .hero-title { font-size: 48px; } 
+        .hero-content-centered { gap: 25px; }
+        .hero-subtitle { font-size: 16px; }
+        .hero-actions { flex-direction: column; align-items: center; }
+        .hero-actions .btn-primary,
+        .hero-actions .btn-secondary { width: 100%; max-width: 280px; }
+        .hero-stats { flex-wrap: wrap; gap: 20px; padding: 15px 20px; }
+        .industry-grid { grid-template-columns: 1fr; }
+        .how-wetech-works .section-title { font-size: 36px; }
+        .how-wetech-works { padding: 60px 20px; }
+        .workflow-modern { grid-template-columns: 1fr; gap: 30px; }
+        .card-header { padding: 30px 30px 20px; }
+        .card-body { padding: 0 30px 25px; }
+        .card-footer { padding: 20px 30px 30px; }
+        .card-number { font-size: 56px; }
+        .card-icon { width: 70px; height: 70px; font-size: 32px; }
+        .card-body h3 { font-size: 24px; }
+        .step-number { font-size: 80px; min-width: 100px; }
+        .workflow-step { flex-direction: column; gap: 20px; }
+        .step-number { text-align: center; }
+        .step-card { padding: 30px; }
+        .step-card h3 { font-size: 24px; }
+        .step-icon { width: 60px; height: 60px; font-size: 28px; }
+        .timeline-step { flex-direction: column !important; margin-bottom: 40px; } 
+        .step-content { width: 90%; text-align: center; margin-top: 50px; } 
+        .full-width-breakout { margin-left: -20px; margin-right: -20px; width: calc(100% + 40px); left: auto; right: auto; }
+        .hero-dark-overlay { background: rgba(0, 0, 0, 0.75); }
+    }
+</style>
+
+<script>
+    function toggleFaq(item) {
+        document.querySelectorAll('.faq-item').forEach(el => { if (el !== item) el.classList.remove('active'); });
+        item.classList.toggle('active');
+    }
+    
+    // Dynamic Background Image Rotation
+    (function() {
+        const heroSection = document.getElementById('hero-section');
+        const heroOverlay = document.querySelector('.hero-bg-overlay');
+        const backgroundImages = [
+            {% for img in hero_background_images %}
+            '{{ img }}'{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
+        if (backgroundImages.length > 0 && heroOverlay) {
+            let currentIndex = 0;
+            
+            // Initialize with first image
+            heroOverlay.style.backgroundImage = `url('${backgroundImages[0]}')`;
+            
+            // Change image every 5 seconds (5000 milliseconds)
+            // Adjust the interval by changing the number below (in milliseconds)
+            setInterval(function() {
+                // Fade out
+                heroOverlay.style.opacity = '0';
+                
+                // Change image after fade starts
+                setTimeout(function() {
+                    currentIndex = (currentIndex + 1) % backgroundImages.length;
+                    const imageUrl = backgroundImages[currentIndex];
+                    heroOverlay.style.backgroundImage = `url('${imageUrl}')`;
+                    // Fade in
+                    heroOverlay.style.opacity = '1';
+                }, 300); // Wait for fade out before changing image
+            }, 5000); // Change this value (5000 = 5 seconds) to adjust the interval
+        }
+    })();
+    
+    // Typewriter/Animated Text Effect
+    (function() {
+        const typedTextElement = document.getElementById('typed-text');
+        if (!typedTextElement) return;
+        
+        const phrases = [
+            'Scale.',
+            'Transform.',
+            'Innovate.',
+            'Excel.',
+            'Grow.',
+        ];
+        
+        let phraseIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        let typingSpeed = 100; // milliseconds per character
+        
+        function typeText() {
+            const currentPhrase = phrases[phraseIndex];
+            
+            if (isDeleting) {
+                // Delete characters
+                typedTextElement.textContent = currentPhrase.substring(0, charIndex - 1);
+                charIndex--;
+                typingSpeed = 50; // Faster when deleting
+            } else {
+                // Type characters
+                typedTextElement.textContent = currentPhrase.substring(0, charIndex + 1);
+                charIndex++;
+                typingSpeed = 100; // Normal speed when typing
+            }
+            
+            if (!isDeleting && charIndex === currentPhrase.length) {
+                // Finished typing, wait then start deleting
+                typingSpeed = 2000; // Wait 2 seconds before deleting
+                isDeleting = true;
+            } else if (isDeleting && charIndex === 0) {
+                // Finished deleting, move to next phrase
+                isDeleting = false;
+                phraseIndex = (phraseIndex + 1) % phrases.length;
+                typingSpeed = 500; // Pause before starting next phrase
+            }
+            
+            setTimeout(typeText, typingSpeed);
+        }
+        
+        // Start the typing animation
+        typeText();
+    })();
+</script>
+
+{% endblock %}

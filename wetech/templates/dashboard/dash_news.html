@@ -1,0 +1,1690 @@
+{% extends 'dashboard_base.html' %} 
+{% load static %}
+{% block dashboard_content %}
+<div style="max-width: 1400px; margin: 0 auto; padding-bottom: 50px;">
+    
+    <!-- Header -->
+    <div class="news-header">
+    <div>
+            <h2 style="color: #fff; font-family: 'Syne'; margin: 0; font-size: 32px;">News & Insights</h2>
+            <p style="color: rgba(255,255,255,0.6); margin-top: 5px;">Manage articles and newsletter subscribers</p>
+    </div>
+        <a href="{% url 'dash_news_add' %}" class="btn-primary" style="padding: 12px 24px; border-radius: 8px; text-decoration: none; background: linear-gradient(90deg, #00d2ff, #7000ff); color: #fff; font-weight: bold; display: inline-flex; align-items: center; gap: 8px;">
+            <i class="bi bi-plus-circle"></i> Post Article
+    </a>
+</div>
+
+    <!-- Statistics Overview -->
+    <div class="news-stats-grid">
+        <div class="glass-card stat-card-small">
+            <div class="stat-icon-small" style="background: rgba(0, 210, 255, 0.1); color: #00d2ff;">
+                <i class="bi bi-newspaper"></i>
+            </div>
+            <div>
+                <div class="stat-value-small">{{ total_articles }}</div>
+                <div class="stat-label-small">Total Articles</div>
+            </div>
+        </div>
+        <div class="glass-card stat-card-small">
+            <div class="stat-icon-small" style="background: rgba(46, 204, 113, 0.1); color: #2ecc71;">
+                <i class="bi bi-calendar-check"></i>
+            </div>
+            <div>
+                <div class="stat-value-small">{{ recent_articles_7d }}</div>
+                <div class="stat-label-small">This Week</div>
+            </div>
+        </div>
+        <div class="glass-card stat-card-small">
+            <div class="stat-icon-small" style="background: rgba(155, 89, 182, 0.1); color: #9b59b6;">
+                <i class="bi bi-link-45deg"></i>
+            </div>
+            <div>
+                <div class="stat-value-small">{{ articles_with_links }}</div>
+                <div class="stat-label-small">With Links</div>
+            </div>
+        </div>
+        <div class="glass-card stat-card-small">
+            <div class="stat-icon-small" style="background: rgba(241, 196, 15, 0.1); color: #f1c40f;">
+                <i class="bi bi-envelope-heart"></i>
+            </div>
+            <div>
+                <div class="stat-value-small">{{ total_subscribers }}</div>
+                <div class="stat-label-small">Subscribers</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="news-controls">
+        <!-- Search & Filters -->
+        <div class="controls-left">
+            <div class="search-wrapper">
+                <i class="bi bi-search"></i>
+                <input type="text" id="news-search" placeholder="Search articles..." class="search-input" title="Search articles">
+            </div>
+            <select id="category-filter" class="filter-select" title="Filter by Category">
+                <option value="all">All Categories</option>
+                {% for code, name in category_choices %}
+                <option value="{{ code }}">{{ name }}</option>
+                {% endfor %}
+            </select>
+            <select id="sort-select" class="filter-select" title="Sort Articles">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="alphabetical">Alphabetical</option>
+                <option value="category">By Category</option>
+            </select>
+            <label class="filter-toggle">
+                <input type="checkbox" id="has-link-filter" title="Filter articles with external links">
+                <span>Has Link</span>
+            </label>
+        </div>
+        
+        <!-- View Toggle & Bulk Actions -->
+        <div class="controls-right">
+            <div class="view-toggle">
+                <button class="view-btn active" type="button" data-view="grid" onclick="setViewMode('grid', this)">
+                    <i class="bi bi-grid"></i> Grid
+                </button>
+                <button class="view-btn" type="button" data-view="list" onclick="setViewMode('list', this)">
+                    <i class="bi bi-list"></i> List
+                </button>
+                <button class="view-btn" type="button" data-view="timeline" onclick="setViewMode('timeline', this)">
+                    <i class="bi bi-clock-history"></i> Timeline
+                </button>
+            </div>
+            <div class="bulk-actions" id="bulk-actions" style="display: none;">
+                <span id="selected-count">0 selected</span>
+                <button class="btn-danger btn-sm" type="button" onclick="bulkDelete()">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Filters -->
+    <div class="active-filters" id="active-filters"></div>
+
+    <!-- News Content (Grid View) -->
+    <div id="grid-view" class="news-view">
+<div class="news-admin-grid">
+    {% for news in news_items %}
+            <div class="news-admin-card" 
+                 data-news-id="{{ news.id }}"
+                 data-category="{{ news.category }}"
+                 data-title="{{ news.title|lower }}"
+                 data-description="{{ news.description|lower }}"
+                 data-has-link="{% if news.external_link %}yes{% else %}no{% endif %}">
+                <div class="card-checkbox">
+                    <label for="news-checkbox-{{ news.id }}" style="display: none;">Select Article</label>
+                    <input type="checkbox" class="news-checkbox" id="news-checkbox-{{ news.id }}" value="{{ news.id }}" title="Select this article" style="width: 18px; height: 18px; cursor: pointer; accent-color: #00d2ff;">
+                </div>
+                <div class="news-admin-thumb" style="background-image: url('{{ news.image.url }}');" onclick="openPreviewModal({{ news.id }})">
+                    <span class="news-cat-badge category-{{ news.category }}">{{ news.category }}</span>
+                    {% if news.external_link %}
+                    <span class="link-indicator" title="Has External Link">
+                        <i class="bi bi-link-45deg"></i>
+                    </span>
+                    {% endif %}
+        </div>
+        <div class="news-admin-body">
+                    <h4 onclick="openPreviewModal({{ news.id }})" style="cursor: pointer;">{{ news.title }}</h4>
+            <p>{{ news.description|truncatechars:60 }}</p>
+            <div class="news-meta">
+                        <small><i class="bi bi-calendar"></i> {{ news.created_at|date:"M d, Y" }}</small>
+                        <div class="news-actions">
+                            {% if news.external_link %}
+                            <a href="{{ news.external_link }}" target="_blank" class="action-icon" title="View Link">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                            </a>
+                            {% endif %}
+                            <button type="button" onclick="openPreviewModal({{ news.id }})" class="action-icon" title="Preview">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                <form action="{% url 'dash_news_delete' news.pk %}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this news item?');">
+                    {% csrf_token %}
+                                <button type="submit" class="action-icon delete-icon" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                </form>
+                        </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <i class="bi bi-newspaper"></i> No news items yet.
+    </div>
+    {% endfor %}
+        </div>
+    </div>
+
+    <!-- News Content (List View) -->
+    <div id="list-view" class="news-view" style="display: none;">
+        <div class="glass-card news-table-wrapper">
+            <table class="news-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px; text-align: center;">
+                            <label for="select-all-list" style="display: none;">Select All</label>
+                            <input type="checkbox" id="select-all-list" title="Select All Articles" onchange="toggleSelectAll(this)" style="width: 18px; height: 18px; cursor: pointer; accent-color: #00d2ff;">
+                        </th>
+                        <th style="width: 100px;">Image</th>
+                        <th style="min-width: 250px;">Title</th>
+                        <th style="width: 150px;">Category</th>
+                        <th style="width: 140px;">Date</th>
+                        <th style="width: 100px;">Status</th>
+                        <th style="width: 140px; text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="news-tbody">
+                    {% for news in news_items %}
+                    <tr class="news-row" 
+                        data-news-id="{{ news.id }}"
+                        data-category="{{ news.category }}"
+                        data-title="{{ news.title|lower }}"
+                        data-description="{{ news.description|lower }}"
+                        data-has-link="{% if news.external_link %}yes{% else %}no{% endif %}">
+                        <td style="text-align: center;">
+                            <label for="list-checkbox-{{ news.id }}" style="display: none;">Select Article</label>
+                            <input type="checkbox" class="news-checkbox" id="list-checkbox-{{ news.id }}" value="{{ news.id }}" title="Select this article" style="width: 18px; height: 18px; cursor: pointer; accent-color: #00d2ff;">
+                        </td>
+                        <td>
+                            <div class="news-image-preview" onclick="openPreviewModal({{ news.id }})">
+                                <img src="{{ news.image.url }}" alt="{{ news.title }}">
+                            </div>
+                        </td>
+                        <td>
+                            <div class="news-title-cell">
+                                <strong onclick="openPreviewModal({{ news.id }})" style="cursor: pointer;">{{ news.title }}</strong>
+                                <p class="news-desc-preview">{{ news.description|truncatewords:10 }}</p>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="category-badge category-{{ news.category }}">
+                                {{ news.category }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="date-cell">
+                                <i class="bi bi-calendar3"></i> {{ news.created_at|date:"M d, Y" }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if news.external_link %}
+                            <span class="status-badge status-link" title="Has External Link">
+                                <i class="bi bi-link-45deg"></i> Linked
+                            </span>
+                            {% else %}
+                            <span class="status-badge" title="No External Link">
+                                <i class="bi bi-dash-circle"></i> No Link
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn preview-btn" onclick="openPreviewModal({{ news.id }})" title="Preview">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                {% if news.external_link %}
+                                <a href="{{ news.external_link }}" target="_blank" class="action-btn link-btn" title="View Link">
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                </a>
+                                {% endif %}
+                                <form action="{% url 'dash_news_delete' news.pk %}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this news item?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="action-btn delete-btn" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" style="padding: 60px; text-align: center; color: rgba(255,255,255,0.5);">
+                            <i class="bi bi-inbox" style="font-size: 48px; display: block; margin-bottom: 15px; opacity: 0.3;"></i>
+                            <p>No articles found. <a href="{% url 'dash_news_add' %}" style="color: #00d2ff;">Create your first article</a></p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- News Content (Timeline View) -->
+    <div id="timeline-view" class="news-view" style="display: none;">
+        <div class="timeline-container">
+            {% regroup news_items by created_at|date:"Y-m" as news_by_month %}
+            {% for month_group in news_by_month %}
+            <div class="timeline-month">
+                <div class="timeline-month-header">
+                    <h3>{{ month_group.grouper|date:"F Y" }}</h3>
+                    <span class="month-count">{{ month_group.list|length }} article{{ month_group.list|length|pluralize }}</span>
+                </div>
+                <div class="timeline-articles">
+                    {% for news in month_group.list %}
+                    <div class="timeline-item glass-card" 
+                         data-news-id="{{ news.id }}"
+                         data-category="{{ news.category }}"
+                         data-title="{{ news.title|lower }}"
+                         data-description="{{ news.description|lower }}"
+                         data-has-link="{% if news.external_link %}yes{% else %}no{% endif %}">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-checkbox">
+                                <label for="timeline-checkbox-{{ news.id }}" style="display: none;">Select Article</label>
+                                <input type="checkbox" class="news-checkbox" id="timeline-checkbox-{{ news.id }}" value="{{ news.id }}" title="Select this article" style="width: 18px; height: 18px; cursor: pointer; accent-color: #00d2ff;">
+                            </div>
+                            <div class="timeline-image" onclick="openPreviewModal({{ news.id }})">
+                                <img src="{{ news.image.url }}" alt="{{ news.title }}">
+                            </div>
+                            <div class="timeline-info">
+                                <div class="timeline-header">
+                                    <h4 onclick="openPreviewModal({{ news.id }})" style="cursor: pointer;">{{ news.title }}</h4>
+                                    <span class="timeline-date">{{ news.created_at|date:"M d" }}</span>
+                                </div>
+                                <p class="timeline-desc">{{ news.description|truncatewords:20 }}</p>
+                                <div class="timeline-badges">
+                                    <span class="timeline-category category-{{ news.category }}">
+                                        {{ news.category }}
+                                    </span>
+                                    {% if news.external_link %}
+                                    <span class="timeline-link"><i class="bi bi-link-45deg"></i> Linked</span>
+                                    {% endif %}
+                                </div>
+                                <div class="timeline-actions">
+                                    <button class="mini-btn" onclick="openPreviewModal({{ news.id }})"><i class="bi bi-eye"></i></button>
+                                    {% if news.external_link %}
+                                    <a href="{{ news.external_link }}" target="_blank" class="mini-btn"><i class="bi bi-box-arrow-up-right"></i></a>
+                                    {% endif %}
+                                    <form action="{% url 'dash_news_delete' news.pk %}" method="POST" style="display:inline;" onsubmit="return confirm('Delete?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="mini-btn delete"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+</div>
+
+<!-- DIVIDER -->
+<div class="dash-divider"></div>
+
+    <!-- SUBSCRIBERS SECTION -->
+    <div class="subscribers-section">
+        <div class="subscribers-header">
+    <div>
+                <h2 style="color: #fff; font-family: 'Syne'; margin: 0; font-size: 28px;">Newsletter Audience</h2>
+                <p style="color: rgba(255,255,255,0.6); margin-top: 5px;">
+                    Total: <span style="color:#00d2ff; font-weight:bold;">{{ total_subscribers }}</span> | 
+                    This Week: <span style="color:#2ecc71;">{{ recent_subscribers_7d }}</span> | 
+                    This Month: <span style="color:#f1c40f;">{{ recent_subscribers_30d }}</span>
+                </p>
+    </div>
+            <div class="subscriber-actions">
+                <a href="{% url 'dash_subscribers_export' %}" class="btn-secondary" style="padding: 10px 20px; border-radius: 8px; text-decoration: none; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+        <i class="bi bi-download"></i> Export CSV
+    </a>
+            </div>
+        </div>
+
+        <!-- Subscriber Statistics -->
+        {% if top_domains %}
+        <div class="subscriber-stats">
+            <h4 style="color: rgba(255,255,255,0.8); font-size: 14px; margin-bottom: 15px;">Top Email Domains</h4>
+            <div class="domain-list">
+                {% for domain, count in top_domains.items %}
+                <div class="domain-item">
+                    <span class="domain-name">@{{ domain }}</span>
+                    <span class="domain-count">{{ count }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Subscriber Search -->
+        <div class="subscriber-search-wrapper">
+            <div class="search-wrapper">
+                <i class="bi bi-search"></i>
+                <input type="text" id="subscriber-search" placeholder="Search subscribers by email..." class="search-input" title="Search subscribers">
+            </div>
+</div>
+
+<!-- SUBSCRIBER TABLE -->
+        <div class="table-container glass-card">
+            <table class="dash-table" id="subscribers-table">
+        <thead>
+            <tr>
+                        <th style="width: 50px; text-align: center;">
+                            <label for="select-all-subs" style="display: none;">Select All Subscribers</label>
+                            <input type="checkbox" id="select-all-subs" title="Select All Subscribers" onchange="toggleSelectAllSubs(this)" style="width: 18px; height: 18px; cursor: pointer; accent-color: #00d2ff;">
+                        </th>
+                <th>Email Address</th>
+                <th>Date Joined</th>
+                        <th style="text-align: right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sub in subscribers %}
+                    <tr class="subscriber-row" data-email="{{ sub.email|lower }}">
+                        <td style="text-align: center;">
+                            <label for="sub-checkbox-{{ sub.id }}" style="display: none;">Select Subscriber</label>
+                            <input type="checkbox" class="sub-checkbox" id="sub-checkbox-{{ sub.id }}" value="{{ sub.id }}" title="Select this subscriber" style="width: 18px; height: 18px; cursor: pointer; accent-color: #00d2ff;">
+                        </td>
+                <td>
+                    <div class="sub-row">
+                        <div class="avatar-letter">{{ sub.email|slice:":1"|upper }}</div>
+                        <span class="sub-email">{{ sub.email }}</span>
+                    </div>
+                </td>
+                        <td style="color: rgba(255,255,255,0.7); font-size: 13px;">
+                            <i class="bi bi-calendar3" style="margin-right: 6px; opacity: 0.6;"></i>
+                            {{ sub.created_at|date:"M d, Y" }}
+                        </td>
+                <td style="text-align: right;">
+                            <div class="subscriber-bulk-actions" id="subscriber-bulk-actions" style="display: none;">
+                                <span id="selected-subs-count">0 selected</span>
+                                <button class="btn-danger btn-sm" type="button" onclick="bulkDeleteSubs()">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </div>
+                    <form action="{% url 'dash_subscriber_delete' sub.pk %}" method="POST" onsubmit="return confirm('Remove this email?');" style="display:inline;">
+                        {% csrf_token %}
+                                <button type="submit" class="btn-icon-delete" title="Delete Subscriber">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                        <td colspan="4" class="empty-state-table">
+                            <i class="bi bi-envelope" style="font-size: 48px; display: block; margin-bottom: 15px; opacity: 0.3;"></i>
+                    No subscribers yet.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div id="preview-modal" class="modal">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h2 id="preview-title">Article Preview</h2>
+            <button class="modal-close" type="button" onclick="closePreviewModal()">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <div class="modal-body" id="preview-body">
+            <!-- Preview content will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<style>
+/* News Page Styles */
+.news-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 30px;
+}
+.news-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+.stat-card-small {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+}
+.stat-icon-small {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+.stat-value-small {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+}
+.stat-label-small {
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Controls */
+.news-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.controls-left {
+    display: flex;
+    gap: 15px;
+    flex: 1;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.search-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 250px;
+}
+.search-wrapper i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255,255,255,0.4);
+}
+.search-input {
+    width: 100%;
+    padding: 12px 12px 12px 40px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+}
+.search-input:focus {
+    outline: none;
+    border-color: #00d2ff;
+    background: rgba(0, 210, 255, 0.05);
+}
+.filter-select {
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    min-width: 150px;
+}
+.filter-select:focus {
+    outline: none;
+    border-color: #00d2ff;
+}
+.filter-select option {
+    background: #1a1a2e;
+    color: #fff;
+}
+.filter-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+    cursor: pointer;
+}
+.filter-toggle input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #00d2ff;
+}
+.controls-right {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+.view-toggle {
+    display: flex;
+    gap: 5px;
+    background: rgba(255,255,255,0.05);
+    padding: 4px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.view-btn {
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+.view-btn.active {
+    background: rgba(0, 210, 255, 0.2);
+    color: #00d2ff;
+}
+.view-btn:hover {
+    color: #00d2ff;
+}
+.bulk-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.bulk-actions #selected-count {
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+}
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 13px;
+}
+.btn-danger {
+    background: rgba(231, 76, 60, 0.2);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    color: #e74c3c;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    padding: 8px 16px;
+}
+
+/* Active Filters */
+.active-filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(0, 210, 255, 0.1);
+    border: 1px solid rgba(0, 210, 255, 0.3);
+    border-radius: 20px;
+    color: #00d2ff;
+    font-size: 12px;
+}
+.filter-chip .close {
+    cursor: pointer;
+    font-size: 14px;
+}
+
+/* News Grid View */
+.news-admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+.news-admin-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: 0.3s;
+    position: relative;
+}
+.news-admin-card:hover {
+    border-color: #00d2ff;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 210, 255, 0.2);
+}
+.card-checkbox {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 2;
+    background: rgba(0,0,0,0.5);
+    padding: 4px;
+    border-radius: 6px;
+}
+.news-admin-thumb {
+    height: 140px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    cursor: pointer;
+}
+.news-cat-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0,0,0,0.7);
+    color: #00d2ff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+.link-indicator {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(46, 204, 113, 0.9);
+    color: #fff;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+.news-admin-body {
+    padding: 15px;
+}
+.news-admin-body h4 {
+    margin: 0 0 8px;
+    color: white;
+    font-family: 'Syne';
+    font-size: 15px;
+    transition: color 0.3s;
+}
+.news-admin-body h4:hover {
+    color: #00d2ff;
+}
+.news-admin-body p {
+    color: rgba(255,255,255,0.6);
+    font-size: 12px;
+    line-height: 1.5;
+    margin-bottom: 15px;
+}
+.news-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding-top: 10px;
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+}
+.news-actions {
+    display: flex;
+    gap: 8px;
+}
+.action-icon {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.3s;
+    padding: 4px;
+    border-radius: 4px;
+}
+.action-icon:hover {
+    color: #00d2ff;
+    background: rgba(0, 210, 255, 0.1);
+}
+.action-icon.delete-icon:hover {
+    color: #e74c3c;
+    background: rgba(231, 76, 60, 0.1);
+}
+
+/* List View */
+.news-table-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+}
+.news-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+.news-table thead {
+    background: linear-gradient(135deg, rgba(0, 210, 255, 0.1), rgba(112, 0, 255, 0.1));
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+.news-table th {
+    padding: 18px 20px;
+    text-align: left;
+    color: rgba(255,255,255,0.9);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    border-bottom: 2px solid rgba(0, 210, 255, 0.2);
+}
+.news-row {
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    transition: all 0.3s ease;
+}
+.news-row:hover {
+    background: rgba(0, 210, 255, 0.05);
+}
+.news-row td {
+    padding: 20px;
+    vertical-align: middle;
+}
+.news-image-preview {
+    width: 70px;
+    height: 70px;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid rgba(255,255,255,0.1);
+}
+.news-image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+.news-image-preview:hover img {
+    transform: scale(1.1);
+}
+.news-title-cell strong {
+    display: block;
+    color: #fff;
+    margin-bottom: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    transition: color 0.3s;
+}
+.news-title-cell strong:hover {
+    color: #00d2ff;
+}
+.news-desc-preview {
+    margin: 0;
+    color: rgba(255,255,255,0.5);
+    font-size: 12px;
+    line-height: 1.6;
+}
+.category-badge {
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 500;
+    display: inline-block;
+}
+.category-Backend {
+    background: rgba(155, 89, 182, 0.15);
+    color: #9b59b6;
+    border: 1px solid rgba(155, 89, 182, 0.3);
+}
+.category-Mobile {
+    background: rgba(0, 210, 255, 0.15);
+    color: #00d2ff;
+    border: 1px solid rgba(0, 210, 255, 0.3);
+}
+.category-Cloud {
+    background: rgba(46, 204, 113, 0.15);
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+}
+.category-AI {
+    background: rgba(241, 196, 15, 0.15);
+    color: #f1c40f;
+    border: 1px solid rgba(241, 196, 15, 0.3);
+}
+.category-Security {
+    background: rgba(231, 76, 60, 0.15);
+    color: #e74c3c;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+.date-cell {
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    color: rgba(255,255,255,0.7);
+    font-size: 11px;
+}
+.status-link {
+    background: rgba(46, 204, 113, 0.15);
+    border-color: rgba(46, 204, 113, 0.3);
+    color: #2ecc71;
+}
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+.action-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1.5px solid transparent;
+    background: rgba(255,255,255,0.06);
+    cursor: pointer;
+    font-size: 15px;
+}
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.preview-btn {
+    color: #3498db;
+    border-color: rgba(52, 152, 219, 0.3);
+}
+.preview-btn:hover {
+    background: rgba(52, 152, 219, 0.2);
+    border-color: #3498db;
+}
+.link-btn {
+    color: #2ecc71;
+    border-color: rgba(46, 204, 113, 0.3);
+}
+.link-btn:hover {
+    background: rgba(46, 204, 113, 0.2);
+    border-color: #2ecc71;
+}
+.delete-btn {
+    color: #e74c3c;
+    border-color: rgba(231, 76, 60, 0.3);
+}
+.delete-btn:hover {
+    background: rgba(231, 76, 60, 0.2);
+    border-color: #e74c3c;
+}
+
+/* Timeline View */
+.timeline-container {
+    position: relative;
+    padding-left: 40px;
+}
+.timeline-container::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, rgba(0, 210, 255, 0.3), rgba(112, 0, 255, 0.3));
+}
+.timeline-month {
+    margin-bottom: 50px;
+}
+.timeline-month-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+.timeline-month-header h3 {
+    color: #fff;
+    font-size: 24px;
+    margin: 0;
+    font-family: 'Syne', sans-serif;
+}
+.month-count {
+    padding: 6px 14px;
+    background: rgba(0, 210, 255, 0.1);
+    border: 1px solid rgba(0, 210, 255, 0.3);
+    border-radius: 20px;
+    color: #00d2ff;
+    font-size: 13px;
+    font-weight: 600;
+}
+.timeline-item {
+    position: relative;
+    margin-bottom: 30px;
+    margin-left: 40px;
+    padding: 25px;
+    border-radius: 16px;
+}
+.timeline-dot {
+    position: absolute;
+    left: -55px;
+    top: 30px;
+    width: 16px;
+    height: 16px;
+    background: #00d2ff;
+    border: 4px solid #1a1a2e;
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(0, 210, 255, 0.2);
+}
+.timeline-content {
+    display: grid;
+    grid-template-columns: auto 120px 1fr;
+    gap: 20px;
+    align-items: start;
+}
+.timeline-checkbox {
+    padding-top: 5px;
+}
+.timeline-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid rgba(255,255,255,0.1);
+}
+.timeline-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+.timeline-image:hover img {
+    transform: scale(1.1);
+}
+.timeline-info h4 {
+    color: #fff;
+    font-size: 18px;
+    margin: 0 0 8px 0;
+    font-family: 'Syne', sans-serif;
+    transition: color 0.3s;
+}
+.timeline-info h4:hover {
+    color: #00d2ff;
+}
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.timeline-date {
+    color: rgba(255,255,255,0.5);
+    font-size: 12px;
+}
+.timeline-desc {
+    color: rgba(255,255,255,0.6);
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+.timeline-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+.timeline-category, .timeline-link {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+}
+.timeline-link {
+    background: rgba(46, 204, 113, 0.15);
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+}
+.timeline-actions {
+    display: flex;
+    gap: 8px;
+}
+.mini-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+    transition: 0.3s;
+    cursor: pointer;
+    border: none;
+}
+.mini-btn:hover {
+    background: rgba(0, 210, 255, 0.1);
+    border-color: #00d2ff;
+    color: #00d2ff;
+}
+.mini-btn.delete:hover {
+    background: rgba(231, 76, 60, 0.1);
+    border-color: #e74c3c;
+    color: #e74c3c;
+}
+
+/* Subscribers Section */
+.dash-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.1);
+    margin: 50px 0;
+}
+.subscribers-section {
+    margin-top: 50px;
+}
+.subscribers-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 30px;
+}
+.subscriber-stats {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+.domain-list {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+.domain-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+}
+.domain-name {
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+}
+.domain-count {
+    color: #00d2ff;
+    font-weight: 600;
+    font-size: 14px;
+}
+.subscriber-search-wrapper {
+    margin-bottom: 20px;
+}
+.table-container {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    overflow: hidden;
+}
+.dash-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.dash-table th {
+    text-align: left;
+    padding: 18px 20px;
+    color: rgba(255,255,255,0.9);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    border-bottom: 2px solid rgba(0, 210, 255, 0.2);
+    background: linear-gradient(135deg, rgba(0, 210, 255, 0.1), rgba(112, 0, 255, 0.1));
+}
+.dash-table td {
+    padding: 18px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    font-size: 13px;
+}
+.dash-table tr:hover {
+    background: rgba(255,255,255,0.02);
+}
+.sub-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.avatar-letter {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #00d2ff, #7000ff);
+    color: #fff;
+    font-weight: bold;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+.sub-email {
+    color: white;
+    font-weight: 500;
+}
+.subscriber-bulk-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: 15px;
+}
+.subscriber-bulk-actions #selected-subs-count {
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+}
+.btn-icon-delete {
+    background: none;
+    border: none;
+    color: #ff4444;
+    cursor: pointer;
+    transition: 0.2s;
+    font-size: 16px;
+    opacity: 0.7;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+.btn-icon-delete:hover {
+    color: #ff0000;
+    opacity: 1;
+    background: rgba(255, 68, 68, 0.1);
+    transform: scale(1.1);
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.modal-content {
+    background: #1a1a2e;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.modal-large {
+    max-width: 1100px;
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 30px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.modal-header h2 {
+    margin: 0;
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+}
+.modal-close {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 28px;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+.modal-close:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+}
+.modal-body {
+    padding: 30px;
+}
+.preview-content {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 30px;
+}
+.preview-image-large {
+    border-radius: 12px;
+    overflow: hidden;
+}
+.preview-image-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    min-height: 300px;
+}
+.preview-details h3 {
+    color: #fff;
+    font-size: 28px;
+    margin: 15px 0;
+    font-family: 'Syne', sans-serif;
+}
+.preview-category {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(0, 210, 255, 0.1);
+    border: 1px solid rgba(0, 210, 255, 0.3);
+    border-radius: 20px;
+    color: #00d2ff;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+.preview-description {
+    color: rgba(255,255,255,0.8);
+    line-height: 1.8;
+    margin-bottom: 25px;
+    font-size: 15px;
+}
+.preview-meta {
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    margin-bottom: 25px;
+    padding-bottom: 25px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.preview-actions {
+    display: flex;
+    gap: 15px;
+}
+.preview-actions .btn-primary,
+.preview-actions .btn-secondary {
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.preview-actions .btn-primary {
+    background: linear-gradient(90deg, #00d2ff, #7000ff);
+    color: #fff;
+}
+.preview-actions .btn-secondary {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+}
+
+/* Utils */
+.empty-state, .empty-state-table {
+    text-align: center;
+    padding: 60px;
+    color: rgba(255,255,255,0.5);
+    font-size: 14px;
+}
+.empty-state i {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 15px;
+    opacity: 0.3;
+}
+
+@media (max-width: 768px) {
+    .news-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .controls-left {
+        flex-direction: column;
+    }
+    .news-admin-grid {
+        grid-template-columns: 1fr;
+    }
+    .timeline-content {
+        grid-template-columns: 1fr;
+    }
+    .preview-content {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+// Store news data for preview
+const newsData = {
+    {% for news in news_items %}
+    {{ news.id }}: {
+        title: "{{ news.title|escapejs }}",
+        description: "{{ news.description|escapejs }}",
+        image: "{{ news.image.url }}",
+        category: "{{ news.category }}",
+        externalLink: "{{ news.external_link|default:''|escapejs }}",
+        createdAt: "{{ news.created_at|date:'M d, Y' }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+};
+
+// View Mode Toggle
+function setViewMode(mode, btn) {
+    document.querySelectorAll('.view-btn').forEach(function(b) {
+        b.classList.remove('active');
+    });
+    btn.classList.add('active');
+    
+    document.querySelectorAll('.news-view').forEach(function(v) {
+        v.style.display = 'none';
+    });
+    document.getElementById(mode + '-view').style.display = 'block';
+    
+    applyFilters();
+}
+
+// Search and Filter
+let currentFilters = {
+    search: '',
+    category: 'all',
+    sort: 'newest',
+    hasLink: false
+};
+
+function applyFilters() {
+    const searchTerm = document.getElementById('news-search');
+    const categoryFilter = document.getElementById('category-filter');
+    const sortOption = document.getElementById('sort-select');
+    const hasLinkFilter = document.getElementById('has-link-filter');
+    
+    const searchValue = searchTerm ? searchTerm.value.toLowerCase() : '';
+    const categoryValue = categoryFilter ? categoryFilter.value : 'all';
+    const sortValue = sortOption ? sortOption.value : 'newest';
+    const hasLinkValue = hasLinkFilter ? hasLinkFilter.checked : false;
+    
+    currentFilters = { search: searchValue, category: categoryValue, sort: sortValue, hasLink: hasLinkValue };
+    
+    const activeView = document.querySelector('.news-view[style*="block"]') || document.getElementById('grid-view');
+    if (!activeView) return;
+    
+    const items = activeView.querySelectorAll('.news-admin-card, .news-row, .timeline-item');
+    
+    items.forEach(function(item) {
+        const title = item.dataset.title || '';
+        const desc = item.dataset.description || '';
+        const category = item.dataset.category || '';
+        const hasLink = item.dataset.hasLink || 'no';
+        
+        const matchesSearch = !searchValue || title.includes(searchValue) || desc.includes(searchValue);
+        const matchesCategory = categoryValue === 'all' || category === categoryValue;
+        const matchesLink = !hasLinkValue || hasLink === 'yes';
+        
+        if (matchesSearch && matchesCategory && matchesLink) {
+            item.style.display = '';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+    
+    updateActiveFilters();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('news-search');
+    const categoryFilter = document.getElementById('category-filter');
+    const sortSelect = document.getElementById('sort-select');
+    const hasLinkFilter = document.getElementById('has-link-filter');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', applyFilters);
+    }
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', applyFilters);
+    }
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function() {
+            sortNews(this.value);
+        });
+    }
+    if (hasLinkFilter) {
+        hasLinkFilter.addEventListener('change', applyFilters);
+    }
+    
+    // Subscriber search
+    const subSearch = document.getElementById('subscriber-search');
+    if (subSearch) {
+        subSearch.addEventListener('input', function() {
+            const searchValue = this.value.toLowerCase();
+            document.querySelectorAll('.subscriber-row').forEach(function(row) {
+                const email = row.dataset.email || '';
+                if (email.includes(searchValue)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    document.querySelectorAll('.news-checkbox').forEach(function(cb) {
+        cb.addEventListener('change', updateBulkActions);
+    });
+    
+    document.querySelectorAll('.sub-checkbox').forEach(function(cb) {
+        cb.addEventListener('change', updateSubscriberBulkActions);
+    });
+    
+    const selectAll = document.getElementById('select-all-list');
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            const activeView = document.querySelector('.news-view[style*="block"]') || document.getElementById('list-view');
+            if (activeView) {
+                activeView.querySelectorAll('.news-checkbox').forEach(function(cb) {
+                    cb.checked = this.checked;
+                }.bind(this));
+            }
+            updateBulkActions();
+        });
+    }
+});
+
+function toggleSelectAll(checkbox) {
+    const activeView = document.querySelector('.news-view[style*="block"]') || document.getElementById('grid-view');
+    if (activeView) {
+        activeView.querySelectorAll('.news-checkbox').forEach(function(cb) {
+            cb.checked = checkbox.checked;
+        });
+    }
+    updateBulkActions();
+}
+
+function toggleSelectAllSubs(checkbox) {
+    document.querySelectorAll('.sub-checkbox').forEach(function(cb) {
+        cb.checked = checkbox.checked;
+    });
+    updateSubscriberBulkActions();
+}
+
+function updateBulkActions() {
+    const selected = document.querySelectorAll('.news-checkbox:checked');
+    const bulkActions = document.getElementById('bulk-actions');
+    const countEl = document.getElementById('selected-count');
+    
+    if (selected.length > 0) {
+        if (bulkActions) bulkActions.style.display = 'flex';
+        if (countEl) countEl.textContent = selected.length + ' selected';
+    } else {
+        if (bulkActions) bulkActions.style.display = 'none';
+    }
+}
+
+function updateSubscriberBulkActions() {
+    const selected = document.querySelectorAll('.sub-checkbox:checked');
+    const bulkActions = document.getElementById('subscriber-bulk-actions');
+    const countEl = document.getElementById('selected-subs-count');
+    
+    if (selected.length > 0) {
+        if (bulkActions) bulkActions.style.display = 'flex';
+        if (countEl) countEl.textContent = selected.length + ' selected';
+    } else {
+        if (bulkActions) bulkActions.style.display = 'none';
+    }
+}
+
+function bulkDelete() {
+    const selected = Array.from(document.querySelectorAll('.news-checkbox:checked')).map(function(cb) {
+        return cb.value;
+    });
+    if (selected.length === 0) return;
+    
+    if (confirm('Delete ' + selected.length + ' article(s)?')) {
+        selected.forEach(function(id) {
+            // Create form and submit for each
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/dashboard/news/delete/' + id + '/';
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = 'csrfmiddlewaretoken';
+            csrf.value = '{{ csrf_token }}';
+            form.appendChild(csrf);
+            document.body.appendChild(form);
+            form.submit();
+        });
+    }
+}
+
+function bulkDeleteSubs() {
+    const selected = Array.from(document.querySelectorAll('.sub-checkbox:checked')).map(function(cb) {
+        return cb.value;
+    });
+    if (selected.length === 0) return;
+    
+    if (confirm('Delete ' + selected.length + ' subscriber(s)?')) {
+        selected.forEach(function(id) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/dashboard/subscribers/delete/' + id + '/';
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = 'csrfmiddlewaretoken';
+            csrf.value = '{{ csrf_token }}';
+            form.appendChild(csrf);
+            document.body.appendChild(form);
+            form.submit();
+        });
+    }
+}
+
+function updateActiveFilters() {
+    const container = document.getElementById('active-filters');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    if (currentFilters.search) {
+        const chip = document.createElement('div');
+        chip.className = 'filter-chip';
+        chip.innerHTML = 'Search: "' + currentFilters.search + '" <span class="close" onclick="clearFilter(\'search\')">×</span>';
+        container.appendChild(chip);
+    }
+    
+    if (currentFilters.category !== 'all') {
+        const chip = document.createElement('div');
+        chip.className = 'filter-chip';
+        const option = document.querySelector('#category-filter option[value="' + currentFilters.category + '"]');
+        chip.innerHTML = 'Category: ' + (option ? option.textContent : currentFilters.category) + ' <span class="close" onclick="clearFilter(\'category\')">×</span>';
+        container.appendChild(chip);
+    }
+    
+    if (currentFilters.hasLink) {
+        const chip = document.createElement('div');
+        chip.className = 'filter-chip';
+        chip.innerHTML = 'Has Link <span class="close" onclick="clearFilter(\'hasLink\')">×</span>';
+        container.appendChild(chip);
+    }
+}
+
+function clearFilter(type) {
+    if (type === 'search') {
+        const searchEl = document.getElementById('news-search');
+        if (searchEl) searchEl.value = '';
+    } else if (type === 'category') {
+        const categoryEl = document.getElementById('category-filter');
+        if (categoryEl) categoryEl.value = 'all';
+    } else if (type === 'hasLink') {
+        const hasLinkEl = document.getElementById('has-link-filter');
+        if (hasLinkEl) hasLinkEl.checked = false;
+    }
+    applyFilters();
+}
+
+function sortNews(sortBy) {
+    console.log('Sort by:', sortBy);
+    // Sorting logic can be implemented here
+}
+
+// Preview Modal
+function openPreviewModal(newsId) {
+    const news = newsData[newsId];
+    if (!news) return;
+    
+    const modal = document.getElementById('preview-modal');
+    const title = document.getElementById('preview-title');
+    const body = document.getElementById('preview-body');
+    
+    if (!modal || !title || !body) return;
+    
+    title.textContent = news.title;
+    
+    body.innerHTML = 
+        '<div class="preview-content">' +
+            '<div class="preview-image-large">' +
+                '<img src="' + news.image + '" alt="' + news.title + '">' +
+            '</div>' +
+            '<div class="preview-details">' +
+                '<div class="preview-category category-' + news.category + '">' +
+                    news.category +
+                '</div>' +
+                '<h3>' + news.title + '</h3>' +
+                '<p class="preview-description">' + news.description + '</p>' +
+                '<div class="preview-meta">' +
+                    '<div><strong>Published:</strong> ' + news.createdAt + '</div>' +
+                    (news.externalLink ? '<div><strong>External Link:</strong> <a href="' + news.externalLink + '" target="_blank">' + news.externalLink + '</a></div>' : '') +
+                '</div>' +
+                '<div class="preview-actions">' +
+                    (news.externalLink ? '<a href="' + news.externalLink + '" target="_blank" class="btn-primary">View Article</a>' : '') +
+                    '<form action="/dashboard/news/delete/' + newsId + '/" method="POST" style="display:inline;" onsubmit="return confirm(\'Delete this article?\')">' +
+                        '<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">' +
+                        '<button type="submit" class="btn-secondary">Delete</button>' +
+                    '</form>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+    
+    modal.style.display = 'flex';
+}
+
+function closePreviewModal() {
+    const modal = document.getElementById('preview-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('preview-modal');
+    if (event.target == modal) {
+        closePreviewModal();
+    }
+};
+</script>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="page-hero">
+    <div class="hero-text-center">
+        <span class="hero-badge">Social Proof</span>
+        <h1>Trusted by <span class="text-gradient">Innovators</span></h1>
+        <p>Don't just take our word for it. Here is what the founders have to say.</p>
+    </div>
+</section>
+
+<!-- 1. Testimonial Grid -->
+<section class="testimonials-advanced">
+    <div class="testimonials-grid">
+        <!-- Card 1 -->
+        <div class="testimonial-card glass-card">
+            <p class="testimonial-text">"WeTech's mastery of Django allowed us to scale from 1,000 to 100,000 users. They are not just coders; they are architects."</p>
+            <div class="testimonial-author">
+                <div class="author-info"><h5>James Aris</h5><p>CTO, FinFlow</p></div>
+            </div>
+        </div>
+        <!-- Card 2 -->
+        <div class="testimonial-card glass-card">
+            <p class="testimonial-text">"Building a cross-platform app for our logistics fleet was a nightmare until we met WeTech. Their Flutter expertise saved us 50% budget."</p>
+            <div class="testimonial-author">
+                <div class="author-info"><h5>Sarah K.</h5><p>Founder, RouteMasters</p></div>
+            </div>
+        </div>
+        <!-- Card 3 -->
+        <div class="testimonial-card glass-card">
+            <p class="testimonial-text">"Professional, transparent, and incredibly fast. The automated CI/CD pipelines they set up transformed our release cycle."</p>
+            <div class="testimonial-author">
+                <div class="author-info"><h5>David Park</h5><p>VP Engineering, DataSync</p></div>
+            </div>
+        </div>
+        <!-- Card 4 -->
+        <div class="testimonial-card glass-card">
+            <p class="testimonial-text">"They helped us migrate from a messy PHP legacy codebase to a clean Python architecture without any downtime."</p>
+            <div class="testimonial-author">
+                <div class="author-info"><h5>Emily Zhang</h5><p>CEO, EdTech Solutions</p></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 2. Partner CTA -->
+<section class="partner-cta">
+    <h2>Join the list of successful founders.</h2>
+    <a href="{% url 'contact' %}" class="btn-primary">Become a Client</a>
+</section>
+{% endblock %}
