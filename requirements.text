@@ -137,3 +137,5 @@ yarl==1.17.2
 zope.interface==7.1.0
 django-ratelimit==3.0.1
 django-htmx==1.17.3
+python-dotenv
+whitenoise
