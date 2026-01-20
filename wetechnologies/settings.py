@@ -36,7 +36,7 @@ LOCAL_IP = get_local_ip()
 
 # Allow access from Localhost, Your Wi-Fi IP, and the Ngrok Tunnel
 # ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'sphygmic-debora-moschate.ngrok-free.dev', LOCAL_IP]
-ALLOWED_HOSTS = ['wetechnologies.onrender.com']
+ALLOWED_HOSTS = ['wetechnologies.onrender.com','wetechnologies-production.up.railway.app']
 # This prints the clickable link in your terminal when you run the server
 if DEBUG:
     print(f"\n\033[92m  SYSTEM ACCESSIBLE AT: http://{LOCAL_IP}:8000 \033[0m\n")
